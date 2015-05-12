@@ -72,7 +72,7 @@ public class INDAGame extends ApplicationAdapter {
 		
 		sprite = p1SpriteSheet.createSprite("up");
 		
-        level = new TmxMapLoader().load("maps/level.tmx");
+        level = new TmxMapLoader().load(Gdx.files.internal("maps/level.tmx").path());
         tiledMapRenderer = new OrthogonalTiledMapRenderer(level);
         TiledMapTileLayer layer0 = (TiledMapTileLayer) level.getLayers().get(0);
         Vector3 center = new Vector3(layer0.getWidth() * layer0.getTileWidth() / 2, layer0.getHeight() * layer0.getTileHeight() / 2, 0);
