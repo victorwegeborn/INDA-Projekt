@@ -9,9 +9,8 @@ public class DesktopLauncher {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 		new LwjglApplication(new INDAGame(), config);
 		
-		// fullscreen
+		
 	    config.fullscreen = true;
-	    // vSync
 	    config.vSyncEnabled = true;
 	}
 }

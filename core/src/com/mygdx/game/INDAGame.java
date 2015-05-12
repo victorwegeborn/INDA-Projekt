@@ -8,6 +8,14 @@ import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.utils.viewport.*;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.math.Vector3;
+
+import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
+import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
+
 
 
 public class INDAGame extends ApplicationAdapter {
@@ -30,6 +38,11 @@ public class INDAGame extends ApplicationAdapter {
 	private Animation p1UpAnim;
 	private Animation p1DownAnim;
 	private Animation p1SideAnim;
+	//
+	
+	//The level
+	private TiledMap level;
+	private TiledMapRenderer tiledMapRenderer;
 	//
 	
 	
@@ -59,6 +72,15 @@ public class INDAGame extends ApplicationAdapter {
 		
 		sprite = p1SpriteSheet.createSprite("up");
 		
+        level = new TmxMapLoader().load("maps/level.tmx");
+        tiledMapRenderer = new OrthogonalTiledMapRenderer(level);
+        TiledMapTileLayer layer0 = (TiledMapTileLayer) level.getLayers().get(0);
+        Vector3 center = new Vector3(layer0.getWidth() * layer0.getTileWidth() / 2, layer0.getHeight() * layer0.getTileHeight() / 2, 0);
+
+        camera.position.set(center);
+        camera.update();
+
+        
 		stateTime = 0.0f;
 		
 		
@@ -70,8 +92,9 @@ public class INDAGame extends ApplicationAdapter {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 		
-		batch.setProjectionMatrix(camera.combined); //Define where to project image 
-		
+		batch.setProjectionMatrix(camera.combined); //Define where to project image
+		tiledMapRenderer.setView(camera);
+	    tiledMapRenderer.render();
 		
 		HandleInputs();
 		
