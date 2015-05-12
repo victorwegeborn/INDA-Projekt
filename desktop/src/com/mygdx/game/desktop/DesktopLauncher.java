@@ -8,5 +8,10 @@ public class DesktopLauncher {
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 		new LwjglApplication(new INDAGame(), config);
+		
+		// fullscreen
+	    config.fullscreen = true;
+	    // vSync
+	    config.vSyncEnabled = true;
 	}
 }

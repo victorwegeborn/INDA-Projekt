@@ -110,6 +110,9 @@ public class INDAGame extends ApplicationAdapter {
 	        	else
 	        		sprite.translateY(-MOVE_SPEED);
 	        }
+	        
+	        if(Gdx.input.isKeyPressed(Input.Keys.Q))
+	        	Gdx.app.exit();
 			
 			
 		
