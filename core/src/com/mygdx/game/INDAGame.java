@@ -18,8 +18,8 @@ public class INDAGame extends ApplicationAdapter {
 	private static final float MOVE_SPEED = 4f;
 	
 	//Screen size and resolution
-	private static final int VIRTUAL_HEIGHT = 256;
-	private static final int VIRTUAL_WIDTH = 256; 
+	private static final int VIRTUAL_HEIGHT = 216;
+	private static final int VIRTUAL_WIDTH = 384; 
 	private Viewport viewport;
 	private OrthographicCamera camera;
 	//
