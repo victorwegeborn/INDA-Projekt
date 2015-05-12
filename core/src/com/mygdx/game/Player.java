@@ -58,6 +58,9 @@ public Player(boolean player1){
 	//TODO: If player1 == false, construct using player 2 sprite sheet
 	//spriteSheet = player1 == true ? [player1sheet] : [player2sheet];
 	
+	
+	
+	
 	//Construct animations for player--***
 	float framerate = 1/24f;
 	spriteSheet = new TextureAtlas(Gdx.files.internal("sprites/characters/ninja1.txt"));
@@ -79,6 +82,9 @@ public Player(boolean player1){
 	leftAnim = new Animation(framerate * 1.25f, left);
 	leftAnim.setPlayMode(Animation.PlayMode.LOOP);
 	//---------------------------------***
+	
+	
+	
 	
 	}
 
