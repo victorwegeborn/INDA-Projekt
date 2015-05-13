@@ -77,7 +77,7 @@ public class INDAGame extends ApplicationAdapter {
 		 */
 		WORLD = new World(new Vector2(0,0), true); 
 		
-		//Create the world friction floor
+		//Create the world friction floor----***
 		BodyDef bdef = new BodyDef();
 		bdef.type = BodyType.StaticBody;
 		PolygonShape shape = new PolygonShape();
@@ -95,15 +95,18 @@ public class INDAGame extends ApplicationAdapter {
 		FRICTION.createFixture(fdef).setUserData("friction floor");
 		FRICTION.setTransform(new Vector2(VIRTUAL_WIDTH / 2f, VIRTUAL_HEIGHT / 2f), 0);
 		shape.dispose();
+		//----------------------------------***
 
 		player = new Player(true, new Vector2 (2,2));
 		
+		//Join player to friction floor-----***
 		FrictionJointDef def = new FrictionJointDef();
 		def.bodyA = FRICTION;
 		def.bodyB = player.body;
 		def.maxForce = 2f;//set something sensible;
 		def.maxTorque = 2f;//set something sensible;
 		FrictionJoint joint = (FrictionJoint) WORLD.createJoint(def);
+		//----------------------------------***
 		
 		b2dr = new Box2DDebugRenderer();
 		
