@@ -22,7 +22,8 @@ public class MPClient {
 		
 		// LÄGG IN ERA EGNA LOKALA IPN HÄR
 		try {
-			client.connect(5000, "10.0.1.2.", Network.PORT);
+		
+			client.connect(5000, "37.123.160.23", Network.PORT);
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
