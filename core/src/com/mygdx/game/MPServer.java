@@ -127,12 +127,11 @@ public class MPServer {
 		//Add client to HashSet
 		clients.add(client);
 		
+		
 		// Add all clients to connections
 		AddClient addClient = new AddClient();
 		addClient.client = client;
 		server.sendToAllTCP(addClient);
-		
-		System.out.println(clients.size());
 	}
 	
 	

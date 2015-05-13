@@ -8,6 +8,7 @@ import com.mygdx.game.Network.*;
 
 public class ClientListener extends Listener {
 	public void connected (Connection c) {
+		
 	}
 
 	public void received (Connection c, Object o) {

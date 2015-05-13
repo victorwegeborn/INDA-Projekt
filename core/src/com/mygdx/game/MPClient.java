@@ -13,7 +13,7 @@ public class MPClient {
 	String name;
 	
 	
-	public MPClient(String name) {
+	public MPClient() {
 		client = new Client();
 		client.start();
 		
@@ -23,15 +23,13 @@ public class MPClient {
 		
 		// LÄGG IN ERA EGNA LOKALA IPN HÄR
 		try {
-		
-			client.connect(5000, "10.0.1.201.", Network.PORT);
+			client.connect(5000, "192.168.0.11", Network.PORT);
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
 		
 		Login e = new Login();
-		e.name = name;
-		this.name = name;
+		e.name = "Miranda Beyer";
 		
 		client.sendTCP(e); 
 		
@@ -39,7 +37,8 @@ public class MPClient {
 	
 	public static void main (String[] args) {
 		Log.set(Log.LEVEL_DEBUG);
-		new MPClient("Victor");
+		
+		new MPClient();
 	}
 	
 }
