@@ -64,13 +64,13 @@ public class MapBodyBuilder {
             }
             
             //Create body and define fixture for this tile
-            BodyDef bd = new BodyDef();
-            bd.type = BodyType.StaticBody;
+            BodyDef bdef = new BodyDef();
+            bdef.type = BodyType.StaticBody;
             FixtureDef fdef = new FixtureDef();
             fdef.filter.categoryBits = B2DVars.BIT_WALL;
         	fdef.filter.maskBits = B2DVars.BIT_PLAYER;
         	fdef.shape = shape;
-            Body body = world.createBody(bd);
+            Body body = world.createBody(bdef);
             Fixture f = body.createFixture(fdef);
           
 

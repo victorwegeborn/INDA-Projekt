@@ -42,8 +42,8 @@ public class INDAGame extends ApplicationAdapter {
 	private static final float MOVE_SPEED = 4.0f;
 	
 	//Screen size and resolution
-	private static final int VIRTUAL_HEIGHT = 288;
-	private static final int VIRTUAL_WIDTH = 512; 
+	private static final int VIRTUAL_HEIGHT = 9;
+	private static final int VIRTUAL_WIDTH = 16; 
 	private Viewport viewport;
 	private OrthographicCamera camera;
 	//
@@ -79,7 +79,7 @@ public class INDAGame extends ApplicationAdapter {
 		camera = new OrthographicCamera(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 		viewport = new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
 		viewport.apply();
-		camera.position.set(camera.viewportWidth/2,camera.viewportHeight/2,0);
+		camera.position.set(camera.viewportWidth/2f,camera.viewportHeight/2f,0);
 		//-------------------------------------------***
 		
 		//Setup the sprite batch
@@ -89,16 +89,14 @@ public class INDAGame extends ApplicationAdapter {
 		
 		//Map loading and rendering*******************
         tileMap = new TmxMapLoader().load(Gdx.files.internal("maps/level.tmx").path());
-        tiledMapRenderer = new OrthogonalTiledMapRenderer(tileMap);
+        tiledMapRenderer = new OrthogonalTiledMapRenderer(tileMap, 1/32f);
         TiledMapTileLayer layer0 = (TiledMapTileLayer) tileMap.getLayers().get(0);
         Vector3 center = new Vector3(layer0.getWidth() * layer0.getTileWidth() / 2, layer0.getHeight() * layer0.getTileHeight() / 2, 0);
                 
         MapBodyBuilder mb = new MapBodyBuilder();
-        mb.buildShapes(tileMap, 32f, WORLD);
+        mb.buildShapes(tileMap, B2DVars.PPM, WORLD);
         //--------------------------*******************
-        
-           
-        
+                
         
         camera.position.set(center);
         camera.update();
@@ -163,6 +161,20 @@ public class INDAGame extends ApplicationAdapter {
             	player.body.setLinearVelocity(0, -MOVE_SPEED);
             	return;
 	        }
+	        
+	        if(Gdx.input.isKeyPressed(Input.Keys.I)){
+	        	camera.zoom = camera.zoom++;
+	        	batch.setProjectionMatrix(camera.combined);
+	        	
+	        }
+	        
+
+	        if(Gdx.input.isKeyPressed(Input.Keys.O)){
+	        	camera.zoom = camera.zoom--;
+	        	batch.setProjectionMatrix(camera.combined);
+
+	        }
+	        
 	        
 	        //If no button is pressed = reset velocity 
 	        player.body.setLinearVelocity(0,0);
