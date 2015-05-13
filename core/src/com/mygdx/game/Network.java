@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.EndPoint;
 
 
@@ -11,12 +12,19 @@ import com.esotericsoftware.kryonet.EndPoint;
 public class Network {
 	
 	//STANDARD PORT
-	private static final int PORT = 54555;
+	public static final int PORT = 54555;
 	
 	
 	//Register packages in the same order for all
 	//EndPoints (server and clients).
-	public static void register(EndPoint endpoint) {
-		
+	public static void register(EndPoint ep) {
+		Kryo kryo = ep.getKryo();
+		//Register packages here
+		kryo.register(Example.class);
 	}
+	
+	public static class Example {
+	}
+
+	
 }
