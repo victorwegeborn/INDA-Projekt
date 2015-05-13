@@ -12,10 +12,7 @@ public class ClientListener extends Listener {
 
 	public void received (Connection c, Object o) {
 		// THIS IS WHERE DATA FROM SERVER SOULD BE HANDLED LOCALY
-		
-		if(o instanceof ExampleReturn) {
-			System.out.println("[CLIENT] Recived package.");
-		}
+
 		
 	}
 

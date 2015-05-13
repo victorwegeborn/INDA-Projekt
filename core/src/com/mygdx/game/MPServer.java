@@ -27,7 +27,8 @@ public class MPServer {
 	private HashSet<MPClient> clients = new HashSet<MPClient>();
 	
 	//=== GAME SPECS ===
-	private static final int MAX_PLAYERS = 4;
+	private static final int MAX_CLIENTS = 4;
+	private static int currentConnectedClients = 0;
 	
 	
 	
@@ -59,16 +60,50 @@ public class MPServer {
 
 			
 			public void received (Connection c, Object o) {
-				// HERE GOES ALL INGAME LOGIC FOR SERVER TO PROCESS
 				
-				//TESTING RECIVE
+				//All connections are MPClients, cast to MPClient
+				ClientConnection connection = (ClientConnection)c;
+				MPClient client = connection.client;
 				
-				if(o instanceof Example) {
-					System.out.println("[SERVER] Example package recived.");
-					ExampleReturn r = new ExampleReturn();
-					server.sendToAllTCP(r);
+				
+				
+				
+				if(o instanceof Login) {
+					
+					System.out.println("GOT LOGIN PACKAGE");
+					
+					// If player is already in game, reject.
+					if(client != null)
+						return;
+					
+					//Reject if name is invalid. ( REGEX?? )
+					//Close connection and return.
+					String name = ((Login) o).name;
+					if(!validName(name)) {
+						c.close();
+						return;
+					}
+					
+					// If somehow tries to reconnect, reject.
+					for(MPClient connected : clients) {
+						if(connected.name.equals(name)){
+							c.close();
+							return;
+						}
+					}
+					
+					LogClient(connection, client);
+					return;
 				}
 				
+			}
+			
+			private boolean validName(String name) {
+				if(name == null)
+					return false;
+				if(name.length() == 0)
+					return false;
+				return true;
 			}
 		});
 		
@@ -78,6 +113,30 @@ public class MPServer {
 		server.start();
 	}
 	
+	
+	void LogClient(ClientConnection c, MPClient client) {
+		c.client = client;
+		
+		//Add connected clients to new connection
+		for(MPClient mpclient : clients) {
+			AddClient addClient = new AddClient();
+			addClient.client = mpclient;
+			c.sendTCP(addClient);
+		}
+		
+		//Add client to HashSet
+		clients.add(client);
+		
+		// Add all clients to connections
+		AddClient addClient = new AddClient();
+		addClient.client = client;
+		server.sendToAllTCP(addClient);
+		
+		System.out.println(clients.size());
+	}
+	
+	
+	
 	public static void main(String []args) {
 		try {
 			new MPServer();
@@ -86,6 +145,7 @@ public class MPServer {
 			e.printStackTrace();
 		}
 	}
+	
 	
 
 

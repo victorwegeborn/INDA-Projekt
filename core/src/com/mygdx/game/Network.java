@@ -24,10 +24,11 @@ public class Network {
 	public static void register(EndPoint ep) {
 		Kryo kryo = ep.getKryo();
 		//Register packages here
-		kryo.register(Example.class);
-		kryo.register(ExampleReturn.class);
+		kryo.register(Login.class);
+		kryo.register(AddClient.class);
+
 	}
 	
-	public static class Example {}
-	public static class ExampleReturn {}
+	public static class Login { public String name; }
+	public static class AddClient { public MPClient client; }
 }

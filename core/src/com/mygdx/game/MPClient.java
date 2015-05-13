@@ -10,9 +10,10 @@ import com.mygdx.game.Network.*;
 public class MPClient {
 	
 	Client client;
+	String name;
 	
 	
-	public MPClient() {
+	public MPClient(String name) {
 		client = new Client();
 		client.start();
 		
@@ -23,20 +24,22 @@ public class MPClient {
 		// LÄGG IN ERA EGNA LOKALA IPN HÄR
 		try {
 		
-			client.connect(5000, "37.123.160.23", Network.PORT);
+			client.connect(5000, "10.0.1.201.", Network.PORT);
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
 		
-		Example e = new Example();
+		Login e = new Login();
+		e.name = name;
+		this.name = name;
 		
-		client.sendTCP(e); //TESTAR SKICKA PACKET
+		client.sendTCP(e); 
 		
 	}
 	
 	public static void main (String[] args) {
 		Log.set(Log.LEVEL_DEBUG);
-		new MPClient();
+		new MPClient("Victor");
 	}
 	
 }
