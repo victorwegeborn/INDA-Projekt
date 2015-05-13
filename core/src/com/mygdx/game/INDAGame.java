@@ -108,8 +108,6 @@ public class INDAGame extends ApplicationAdapter {
 		// Setup screen resolution and camera position***
 		camera = new OrthographicCamera(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 		viewport = new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
-
-		// camera.position.set(camera.viewportWidth/2f,camera.viewportHeight/2f,0);
 		// -------------------------------------------***
 
 		// Setup the sprite batch
