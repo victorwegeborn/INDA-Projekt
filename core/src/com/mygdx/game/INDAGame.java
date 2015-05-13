@@ -174,14 +174,16 @@ public class INDAGame extends ApplicationAdapter {
 	        }
 	        
 	        if(Gdx.input.isKeyPressed(Input.Keys.I)){
-	        	camera.zoom = camera.zoom++;
+	        	camera.zoom += 0.2f;
+	        	camera.update();
 	        	batch.setProjectionMatrix(camera.combined);
 	        	
 	        }
 	        
 
 	        if(Gdx.input.isKeyPressed(Input.Keys.O)){
-	        	camera.zoom = camera.zoom--;
+	        	camera.zoom -= 0.2f;
+	        	camera.update();
 	        	batch.setProjectionMatrix(camera.combined);
 
 	        }
