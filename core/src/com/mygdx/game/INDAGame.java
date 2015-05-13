@@ -40,7 +40,7 @@ public class INDAGame extends ApplicationAdapter {
 	
 	//Dummy game variables
 	private static final float MOVE_FORCE = 0.02f;
-	private static final float MAX_MOVE_SPEED = 1f; 
+	private static final float MAX_MOVE_SPEED = 0.05f; 
 	
 	//Screen size and resolution
 	private static final int VIRTUAL_HEIGHT = 9;
@@ -186,9 +186,6 @@ public class INDAGame extends ApplicationAdapter {
 
 	        }
 	        
-	        
-	        //If no button is pressed = reset velocity 
-	        player.body.setLinearVelocity(0,0);
 		
 	}
 	
