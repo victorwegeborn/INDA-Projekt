@@ -14,7 +14,7 @@ import com.badlogic.gdx.utils.Array;
 
 
 public class Player {
-public static final float MOVE_SPEED = 4f;
+public static final float MOVE_SPEED = 0.05f;
 public static final float DAMPING = 0.8f;
 
 public enum State{
@@ -61,7 +61,7 @@ public Player(boolean player1, Vector2 position){
 	FixtureDef fdef = new FixtureDef();
 	
 	PolygonShape shape = new PolygonShape();	//The box collider
-	shape.setAsBox(32 / PPM, 32 / PPM);			//The box collider
+	shape.setAsBox(0.25f, 0.25f);			//The box collider
 	fdef.shape = shape;
 	fdef.filter.categoryBits = B2DVars.BIT_PLAYER;
 	fdef.filter.maskBits = B2DVars.BIT_BOX | B2DVars.BIT_WALL | B2DVars.BIT_ITEM | B2DVars.BIT_EVERYTHING;;

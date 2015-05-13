@@ -39,7 +39,8 @@ public class INDAGame extends ApplicationAdapter {
 	private Box2DDebugRenderer b2dr;
 	
 	//Dummy game variables
-	private static final float MOVE_SPEED = 4.0f;
+	private static final float MOVE_FORCE = 0.02f;
+	private static final float MAX_MOVE_SPEED = 1f; 
 	
 	//Screen size and resolution
 	private static final int VIRTUAL_HEIGHT = 9;
@@ -120,14 +121,14 @@ public class INDAGame extends ApplicationAdapter {
 	    stateTime += Gdx.graphics.getDeltaTime();
 	    update(stateTime);
 	    
-	    b2dr.render(WORLD, camera.combined);
 	    tiledMapRenderer.setView(camera);
 	    tiledMapRenderer.render();
-		
+	    b2dr.render(WORLD, camera.combined);
+
 		handleInputs();
 				
 	    batch.begin();
-        batch.draw(player.Animation().getKeyFrame(stateTime, true), player.body.getPosition().x, player.body.getPosition().y);
+        batch.draw(player.Animation().getKeyFrame(stateTime, true), player.body.getPosition().x, player.body.getPosition().y, 1, 1);
 	    batch.end();
 	    
 	    if(Gdx.input.isKeyPressed(Input.Keys.Q))
@@ -139,26 +140,37 @@ public class INDAGame extends ApplicationAdapter {
 		
 		   if(Gdx.input.isKeyPressed(Input.Keys.LEFT)){
 	        	player.SetState(State.Left);
-            	player.body.setLinearVelocity(-MOVE_SPEED, 0);
-            	return;
+	        	if(Math.abs(player.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
+	        		player.body.applyForceToCenter(new Vector2(-MOVE_FORCE, 0), true);
+            	
+	        	return;
 	        }
 	        if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)){
 	        	player.SetState(State.Right);
-            	player.body.setLinearVelocity(MOVE_SPEED, 0);
-            	return;
+	        	
+	        	if(Math.abs(player.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
+	        		player.body.applyForceToCenter(new Vector2(MOVE_FORCE, 0), true);
+	        	
+	        	return;
 
 	        }
 	        
 	        if(Gdx.input.isKeyPressed(Input.Keys.UP)){
 	        	player.SetState(State.Up);
-            	player.body.setLinearVelocity(0, MOVE_SPEED);
-            	return;
+	        	
+	        	if(Math.abs(player.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
+	        		player.body.applyForceToCenter(new Vector2(0, MOVE_FORCE), true);
+            	
+	        	return;
 	        }
 	        
 	        if(Gdx.input.isKeyPressed(Input.Keys.DOWN)){
 	        	player.SetState(State.Down);
-            	player.body.setLinearVelocity(0, -MOVE_SPEED);
-            	return;
+	        	
+	        	if(Math.abs(player.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
+	        		player.body.applyForceToCenter(new Vector2(0, -MOVE_FORCE), true);
+            	
+	        	return;
 	        }
 	        
 	        if(Gdx.input.isKeyPressed(Input.Keys.I)){
