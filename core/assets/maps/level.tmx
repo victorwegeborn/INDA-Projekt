@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="left-up" width="13" height="7" tilewidth="32" tileheight="32" nextobjectid="1">
+<map version="1.0" orientation="orthogonal" renderorder="left-up" width="19" height="9" tilewidth="32" tileheight="32" nextobjectid="1">
  <tileset firstgid="1" name="Tileset" tilewidth="32" tileheight="32">
   <image source="../sprites/tiles/Tileset.png" width="128" height="128"/>
  </tileset>
- <layer name="Tile Layer 1" width="13" height="7">
+ <layer name="Tile Layer 1" width="19" height="9">
   <data encoding="base64" compression="zlib">
-   eJzjZWBgYARiJiIwMxDzQjErELMRgdmHsR5OIOYiAnND1QMAmaMChQ==
+   eJzjZWBgYARiJgowMxDzQjErELNRgNlHzRp2ZnECMRcFmBtqDgBrNwSB
   </data>
  </layer>
- <layer name="Tile Layer 2" width="13" height="7">
+ <layer name="Tile Layer 2" width="19" height="9">
   <data encoding="base64" compression="zlib">
-   eJxjYKAM8BCgsQEBAvRA2kNLAAC17ADh
+   eJxjYKAN4CGTxgYEyKRH3UW5uwYTAABjyQJN
   </data>
  </layer>
 </map>
