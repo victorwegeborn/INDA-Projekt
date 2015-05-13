@@ -25,6 +25,7 @@ public class INDAGame extends ApplicationAdapter {
 	private Player player;
 	private Player enemy;
 	
+	
 	//Dummy game variables
 	private static final float MOVE_SPEED = 4.0f;
 	
