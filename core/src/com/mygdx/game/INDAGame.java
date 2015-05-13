@@ -17,10 +17,15 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
+import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
+import com.badlogic.gdx.physics.box2d.joints.FrictionJoint;
+import com.badlogic.gdx.physics.box2d.joints.FrictionJointDef;
 import com.mygdx.game.Player.State;
 
 
@@ -35,6 +40,7 @@ public class INDAGame extends ApplicationAdapter {
 	public static World WORLD;
 	private Player player;
 	private Player enemy;
+	public static Body FRICTION;
 	
 	private Box2DDebugRenderer b2dr;
 	
@@ -69,9 +75,34 @@ public class INDAGame extends ApplicationAdapter {
 		 * The boolean value removes inactive bodies from physics calc. 
 		 */
 		WORLD = new World(new Vector2(0,0), true); 
-		player = new Player(true, new Vector2 (2,2));
-
 		
+		//Create the world friction floor
+		BodyDef bdef = new BodyDef();
+		bdef.type = BodyType.StaticBody;
+		PolygonShape shape = new PolygonShape();
+		shape.setAsBox(VIRTUAL_WIDTH / 2f, VIRTUAL_HEIGHT / 2f);
+		FRICTION = WORLD.createBody(bdef);
+		
+		FixtureDef fdef = new FixtureDef();
+		fdef.filter.categoryBits = B2DVars.BIT_FRICTION;
+		fdef.filter.maskBits = 0;
+		fdef.density = 0.0f;
+		fdef.restitution = 0.5f;
+		fdef.friction = 0f;
+		fdef.shape = shape;
+		
+		FRICTION.createFixture(fdef).setUserData("friction floor");
+		FRICTION.setTransform(new Vector2(VIRTUAL_WIDTH / 2f, VIRTUAL_HEIGHT / 2f), 0);
+		shape.dispose();
+
+		player = new Player(true, new Vector2 (2,2));
+		
+		FrictionJointDef def = new FrictionJointDef();
+		def.bodyA = FRICTION;
+		def.bodyB = player.body;
+		def.maxForce = 0.01f;//set something sensible;
+		def.maxTorque = 0f;//set something sensible;
+		FrictionJoint joint = (FrictionJoint) WORLD.createJoint(def);
 		
 		b2dr = new Box2DDebugRenderer();
 		
@@ -97,7 +128,7 @@ public class INDAGame extends ApplicationAdapter {
         MapBodyBuilder mb = new MapBodyBuilder();
         mb.buildShapes(tileMap, B2DVars.PPM, WORLD);
         //--------------------------*******************
-                
+        
         
         camera.update();
 
@@ -113,26 +144,31 @@ public class INDAGame extends ApplicationAdapter {
 	
 	@Override
 	public void render () {
-		//Clear screen
-		Gdx.gl.glClearColor(1, 1, 1, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		
-		//Update statetime and physics
-	    stateTime += Gdx.graphics.getDeltaTime();
-	    update(stateTime);
-	    
-	    tiledMapRenderer.setView(camera);
-	    tiledMapRenderer.render();
-	    b2dr.render(WORLD, camera.combined);
+        //Clear screen
+        Gdx.gl.glClearColor(1, 1, 1, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		handleInputs();
-				
-	    batch.begin();
-        batch.draw(player.Animation().getKeyFrame(stateTime, true), player.body.getPosition().x, player.body.getPosition().y, 1, 1);
-	    batch.end();
-	    
-	    if(Gdx.input.isKeyPressed(Input.Keys.Q))
-        	Gdx.app.exit();
+        camera.update();
+        batch.setProjectionMatrix(camera.combined);
+
+        //Update statetime and physics
+    stateTime += Gdx.graphics.getDeltaTime();
+    update(stateTime);
+   
+    tiledMapRenderer.setView(camera);
+    tiledMapRenderer.render();
+    b2dr.render(WORLD, camera.combined);
+
+    handleInputs();
+                       
+    batch.begin();
+    batch.draw(player.Animation().getKeyFrame(stateTime, true), player.body.getPosition().x - 0.5f, player.body.getPosition().y - 0.45f, 1, 1);
+    batch.end();
+
+    System.out.println(camera.viewportWidth + "  " + player.body.getLinearVelocity() + " " + MAX_MOVE_SPEED);
+   
+    if(Gdx.input.isKeyPressed(Input.Keys.Q))
+        Gdx.app.exit();
 	}
 	
 	
@@ -173,6 +209,10 @@ public class INDAGame extends ApplicationAdapter {
 	        	return;
 	        }
 	        
+	        
+	        /**
+	         *Zoom-controls for dev-purposes
+	         */
 	        if(Gdx.input.isKeyPressed(Input.Keys.I)){
 	        	camera.zoom += 0.2f;
 	        	camera.update();
