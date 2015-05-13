@@ -4,8 +4,20 @@ import java.io.IOException;
 import java.util.HashSet;
 
 import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.minlog.Log;
+import com.mygdx.game.Network.*;
+
+/**
+ * MPServer - Multiplayer Server
+ * 
+ * This server should be instantieted on the hosts machine.
+ * 
+ * 
+ * @author victorwegeborn
+ *
+ */
 
 public class MPServer {
 	
@@ -33,7 +45,35 @@ public class MPServer {
 		
 		Network.register(server);
 		
-		server.addListener(new ServerListener());
+		
+		
+		server.addListener(new Listener() {
+			public void connected (Connection c) {
+				Log.info("[SERVER] client connecting");
+			}
+
+			
+			public void disconnected (Connection c) {
+				Log.info("[SERVER] client disconnecting");
+			}
+
+			
+			public void received (Connection c, Object o) {
+				// HERE GOES ALL INGAME LOGIC FOR SERVER TO PROCESS
+				
+				//TESTING RECIVE
+				
+				if(o instanceof Example) {
+					System.out.println("[SERVER] Example package recived.");
+					ExampleReturn r = new ExampleReturn();
+					server.sendToAllTCP(r);
+				}
+				
+			}
+		});
+		
+		
+		
 		server.bind(Network.PORT);
 		server.start();
 	}
@@ -46,4 +86,7 @@ public class MPServer {
 			e.printStackTrace();
 		}
 	}
+	
+
+
 }

@@ -6,7 +6,11 @@ import com.esotericsoftware.kryonet.EndPoint;
 
 /** Network
  * 
- *  Class is used to keep things common between server and client
+ *  Class is used to keep things common between server and client.
+ *  Classes that are registred can be used as packages between
+ *  server and client. Due to Kryonet we need to be consistant
+ *  of how and in wich order we register packages.
+ *  
  */
 
 public class Network {
@@ -21,10 +25,9 @@ public class Network {
 		Kryo kryo = ep.getKryo();
 		//Register packages here
 		kryo.register(Example.class);
+		kryo.register(ExampleReturn.class);
 	}
 	
-	public static class Example {
-	}
-
-	
+	public static class Example {}
+	public static class ExampleReturn {}
 }

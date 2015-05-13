@@ -5,6 +5,7 @@ import java.io.IOException;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Listener.ThreadedListener;
 import com.esotericsoftware.minlog.Log;
+import com.mygdx.game.Network.*;
 
 public class MPClient {
 	
@@ -19,12 +20,17 @@ public class MPClient {
 		
 		client.addListener(new ThreadedListener(new ClientListener()));
 		
+		// LÄGG IN ERA EGNA LOKALA IPN HÄR
 		try {
-			client.connect(5000, "10.0.1.2", Network.PORT);
-			// Server communication after connection can go here, or in Listener#connected().
+			client.connect(5000, "10.0.1.2.", Network.PORT);
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
+		
+		Example e = new Example();
+		
+		client.sendTCP(e); //TESTAR SKICKA PACKET
+		
 	}
 	
 	public static void main (String[] args) {
