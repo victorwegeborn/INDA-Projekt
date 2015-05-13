@@ -1,9 +1,15 @@
 package com.mygdx.game;
+import static com.mygdx.game.B2DVars.PPM;
+import static com.mygdx.game.INDAGame.WORLD;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.graphics.g2d.*;
+import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.utils.Array;
 
 
@@ -17,6 +23,8 @@ public enum State{
 
 private State state;
 
+public Body body;
+
 private boolean _isFacingRight,_isFacingUp;
 private float stateTime;
 private Vector3 position, velocity;
@@ -24,10 +32,8 @@ private float width, height;
 
 //Player sprites and animation
 private TextureAtlas spriteSheet;
-private Animation upAnim;
-private Animation downAnim;
-private Animation rightAnim;
-private Animation leftAnim;
+private Animation upAnim, upIdleAnim, downAnim, downIdleAnim,
+leftAnim, leftIdleAnim, rightAnim, rightIdleAnim;
 
 //Player game attributes
 private int bombCount;
@@ -37,15 +43,35 @@ private int speedCount;
 
 /*
  * Creates a new player.
- * @param Vector3 position: denotes starting position
+ * @param Vector2 position: denotes starting position
  * @param boolean player1: if true = player 1, false = player 2
  */
 
-public Player(boolean player1){
+public Player(boolean player1, Vector2 position){
 	
 	bombCount = 1;
 	fireLength = 1;
 	speedCount = 1;
+	
+	//Create player body
+	BodyDef bdef = new BodyDef();
+	bdef.position.set(position);
+	bdef.type = BodyType.DynamicBody;
+	
+	FixtureDef fdef = new FixtureDef();
+	
+	PolygonShape shape = new PolygonShape();	//The box collider
+	shape.setAsBox(32 / PPM, 32 / PPM);			//The box collider
+	fdef.shape = shape;
+	fdef.filter.categoryBits = B2DVars.BIT_PLAYER;
+	fdef.filter.maskBits = B2DVars.BIT_BOX | B2DVars.BIT_WALL | B2DVars.BIT_ITEM | B2DVars.BIT_EVERYTHING;;
+	body = WORLD.createBody(bdef);
+	body.createFixture(fdef).setUserData("player");
+
+
+	
+	
+	
 	
 	velocity = new Vector3();
 	_isFacingRight = true;
@@ -67,13 +93,17 @@ public Player(boolean player1){
 	
 	upAnim = new Animation(framerate, spriteSheet.findRegions("up"));
 	upAnim.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
+	upIdleAnim = new Animation(framerate, spriteSheet.findRegion("up", 4));
 
 	
 	downAnim = new Animation(framerate, spriteSheet.findRegions("down"));
 	downAnim.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
-	
+	downIdleAnim = new Animation(framerate, spriteSheet.findRegion("down", 4));
+
 	rightAnim = new Animation(framerate * 1.25f, spriteSheet.findRegions("side"));
 	rightAnim.setPlayMode(Animation.PlayMode.LOOP);
+	rightIdleAnim = new Animation(framerate * 1.25f, spriteSheet.findRegion("side", 4));
+
 	
 	Array<TextureAtlas.AtlasRegion> left = spriteSheet.findRegions(("side"));
 	for(TextureAtlas.AtlasRegion a : left)
@@ -81,6 +111,8 @@ public Player(boolean player1){
 	
 	leftAnim = new Animation(framerate * 1.25f, left);
 	leftAnim.setPlayMode(Animation.PlayMode.LOOP);
+	leftIdleAnim = new Animation(framerate * 1.25f, left.get(3));
+
 	//---------------------------------***
 	
 	
@@ -99,13 +131,13 @@ public Player(boolean player1){
 	public Animation Animation(){
 		switch(state){
 		case Up:
-			return upAnim;
+			return body.getLinearVelocity().y > 0 ? upAnim : upIdleAnim;
 		case Down:
-			return downAnim;
+			return body.getLinearVelocity().y < 0 ? downAnim : downIdleAnim;
 		case Left:
-			return leftAnim;
+			return body.getLinearVelocity().x < 0 ? leftAnim : leftIdleAnim;
 		case Right:
-			return rightAnim;
+			return body.getLinearVelocity().x > 0 ? rightAnim : rightIdleAnim;
 		default:
 			return downAnim;
 		}

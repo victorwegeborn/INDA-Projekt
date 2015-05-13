@@ -9,11 +9,18 @@ import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.utils.viewport.*;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.mygdx.game.Player.State;
 
 
@@ -22,9 +29,14 @@ public class INDAGame extends ApplicationAdapter {
 	SpriteBatch batch;
 	Texture img;
 	
+	
+	
+	//TODO: Migrate to server!
+	public static World WORLD;
 	private Player player;
 	private Player enemy;
 	
+	private Box2DDebugRenderer b2dr;
 	
 	//Dummy game variables
 	private static final float MOVE_SPEED = 4.0f;
@@ -37,7 +49,7 @@ public class INDAGame extends ApplicationAdapter {
 	//
 	
 	//The level
-	private TiledMap level;
+	private TiledMap tileMap;
 	private TiledMapRenderer tiledMapRenderer;
 	//
 	
@@ -49,8 +61,20 @@ public class INDAGame extends ApplicationAdapter {
 	
 	@Override
 	public void create () {
-		batch = new SpriteBatch();
+		//TODO: Migrate to server
+		/*
+		 * The input vector defines gravitational pull on the x- and
+		 * y-axis of the world. 0, 0 = no gravity in either direction.
+		 * The boolean value removes inactive bodies from physics calc. 
+		 */
+		WORLD = new World(new Vector2(0,0), true); 
+		player = new Player(true, new Vector2 (100,100));
+
 		
+		
+		b2dr = new Box2DDebugRenderer();
+		
+
 		//Setup screen resolution and camera position***
 		camera = new OrthographicCamera(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 		viewport = new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
@@ -58,15 +82,24 @@ public class INDAGame extends ApplicationAdapter {
 		camera.position.set(camera.viewportWidth/2,camera.viewportHeight/2,0);
 		//-------------------------------------------***
 		
-		player = new Player(true);
+		//Setup the sprite batch
+		batch = new SpriteBatch();
+		batch.setProjectionMatrix(camera.combined); //Define where to project image
 		
-		sprite = new TextureAtlas(Gdx.files.internal("sprites/characters/ninja1.txt")).createSprite("down");
 		
-        level = new TmxMapLoader().load(Gdx.files.internal("maps/level.tmx").path());
-        tiledMapRenderer = new OrthogonalTiledMapRenderer(level);
-        TiledMapTileLayer layer0 = (TiledMapTileLayer) level.getLayers().get(0);
+		//Map loading and rendering*******************
+        tileMap = new TmxMapLoader().load(Gdx.files.internal("maps/level.tmx").path());
+        tiledMapRenderer = new OrthogonalTiledMapRenderer(tileMap);
+        TiledMapTileLayer layer0 = (TiledMapTileLayer) tileMap.getLayers().get(0);
         Vector3 center = new Vector3(layer0.getWidth() * layer0.getTileWidth() / 2, layer0.getHeight() * layer0.getTileHeight() / 2, 0);
-
+                
+        MapBodyBuilder mb = new MapBodyBuilder();
+        mb.buildShapes(tileMap, 32f, WORLD);
+        //--------------------------*******************
+        
+           
+        
+        
         camera.position.set(center);
         camera.update();
 
@@ -76,21 +109,28 @@ public class INDAGame extends ApplicationAdapter {
 		
 	}
 
+	public void update(float dt){
+		WORLD.step(dt, 6, 2); // 6 and 2 are accuracy-settings for physics calculations, change later
+	}
+	
 	@Override
 	public void render () {
+		//Clear screen
 		Gdx.gl.glClearColor(1, 1, 1, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-	    stateTime += Gdx.graphics.getDeltaTime();
 		
-		batch.setProjectionMatrix(camera.combined); //Define where to project image
-		tiledMapRenderer.setView(camera);
+		//Update statetime and physics
+	    stateTime += Gdx.graphics.getDeltaTime();
+	    update(stateTime);
+	    
+	    b2dr.render(WORLD, camera.combined);
+	    tiledMapRenderer.setView(camera);
 	    tiledMapRenderer.render();
 		
-		HandleInputs();
-
+		handleInputs();
+				
 	    batch.begin();
-        batch.draw(player.Animation().getKeyFrame(stateTime, true), 100, 100);
-	    //sprite.draw(batch);         
+        batch.draw(player.Animation().getKeyFrame(stateTime, true), player.body.getPosition().x, player.body.getPosition().y);
 	    batch.end();
 	    
 	    if(Gdx.input.isKeyPressed(Input.Keys.Q))
@@ -98,40 +138,34 @@ public class INDAGame extends ApplicationAdapter {
 	}
 	
 	
-	private void HandleInputs(){
+	private void handleInputs(){
+		
 		   if(Gdx.input.isKeyPressed(Input.Keys.LEFT)){
 	        	player.SetState(State.Left);
-	            if(Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT))
-	                sprite.translateX(-1f);
-	            else
-	                sprite.translateX(-MOVE_SPEED);
+            	player.body.setLinearVelocity(-MOVE_SPEED, 0);
+            	return;
 	        }
 	        if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)){
 	        	player.SetState(State.Right);
+            	player.body.setLinearVelocity(MOVE_SPEED, 0);
+            	return;
 
-	            if(Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT))
-	                sprite.translateX(1f);
-	            else
-	                sprite.translateX(MOVE_SPEED);
 	        }
 	        
 	        if(Gdx.input.isKeyPressed(Input.Keys.UP)){
 	        	player.SetState(State.Up);
-	        	
-	        	if(Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT))
-	        		sprite.translateY(1f);
-	        	else
-	        		sprite.translateY(MOVE_SPEED);
+            	player.body.setLinearVelocity(0, MOVE_SPEED);
+            	return;
 	        }
 	        
 	        if(Gdx.input.isKeyPressed(Input.Keys.DOWN)){
 	        	player.SetState(State.Down);
-
-	        	if(Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT))
-	        		sprite.translateY(-1f);
-	        	else
-	        		sprite.translateY(-MOVE_SPEED);
+            	player.body.setLinearVelocity(0, -MOVE_SPEED);
+            	return;
 	        }
+	        
+	        //If no button is pressed = reset velocity 
+	        player.body.setLinearVelocity(0,0);
 		
 	}
 	
