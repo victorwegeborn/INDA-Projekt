@@ -27,8 +27,11 @@ import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.joints.FrictionJoint;
 import com.badlogic.gdx.physics.box2d.joints.FrictionJointDef;
 import com.mygdx.game.Player.State;
+import com.badlogic.gdx.Game;
+
 
 public class INDAGame extends ApplicationAdapter {
+
 	SpriteBatch batch;
 	Texture img;
 
@@ -69,6 +72,7 @@ public class INDAGame extends ApplicationAdapter {
 		 * the world. 0, 0 = no gravity in either direction. The boolean value
 		 * removes inactive bodies from physics calc.
 		 */
+
 		WORLD = new World(new Vector2(0, 0), true);
 
 		// Create the world friction floor----***
@@ -132,13 +136,16 @@ public class INDAGame extends ApplicationAdapter {
 		camera.position.set(center);
 		camera.update();
 
+
 		stateTime = 0.0f;
 
 	}
 
+
 	public void update(float dt) {
 		WORLD.step(dt, 6, 2); // 6 and 2 are accuracy-settings for physics
 								// calculations, change later
+
 	}
 
 	@Override
@@ -169,6 +176,7 @@ public class INDAGame extends ApplicationAdapter {
 		if (Gdx.input.isKeyPressed(Input.Keys.Q))
 			Gdx.app.exit();
 	}
+
 
 	private void handleInputs() {
 
@@ -231,3 +239,7 @@ public class INDAGame extends ApplicationAdapter {
 	}
 
 }
+
+	
+	
+	
