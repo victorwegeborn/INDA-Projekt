@@ -98,7 +98,6 @@ public class INDAGame extends ApplicationAdapter {
         //--------------------------*******************
                 
         
-      //  camera.position.set(center);
         camera.update();
 
         
