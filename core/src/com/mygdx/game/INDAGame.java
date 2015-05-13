@@ -68,7 +68,7 @@ public class INDAGame extends ApplicationAdapter {
 		 * The boolean value removes inactive bodies from physics calc. 
 		 */
 		WORLD = new World(new Vector2(0,0), true); 
-		player = new Player(true, new Vector2 (100,100));
+		player = new Player(true, new Vector2 (2,2));
 
 		
 		
@@ -78,7 +78,7 @@ public class INDAGame extends ApplicationAdapter {
 		//Setup screen resolution and camera position***
 		camera = new OrthographicCamera(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 		viewport = new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
-		viewport.apply();
+
 		camera.position.set(camera.viewportWidth/2f,camera.viewportHeight/2f,0);
 		//-------------------------------------------***
 		
@@ -98,7 +98,7 @@ public class INDAGame extends ApplicationAdapter {
         //--------------------------*******************
                 
         
-        camera.position.set(center);
+      //  camera.position.set(center);
         camera.update();
 
         
