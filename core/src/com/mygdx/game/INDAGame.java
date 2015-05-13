@@ -41,12 +41,13 @@ public class INDAGame extends ApplicationAdapter {
 	private Player player;
 	private Player enemy;
 	public static Body FRICTION;
+	private static float timeStep = 1f / 60f;
 	
 	private Box2DDebugRenderer b2dr;
 	
 	//Dummy game variables
-	private static final float MOVE_FORCE = 0.02f;
-	private static final float MAX_MOVE_SPEED = 0.05f; 
+	private static final float MOVE_FORCE = 10f;
+	private static final float MAX_MOVE_SPEED = 3f; 
 	
 	//Screen size and resolution
 	private static final int VIRTUAL_HEIGHT = 9;
@@ -100,8 +101,8 @@ public class INDAGame extends ApplicationAdapter {
 		FrictionJointDef def = new FrictionJointDef();
 		def.bodyA = FRICTION;
 		def.bodyB = player.body;
-		def.maxForce = 0.01f;//set something sensible;
-		def.maxTorque = 0f;//set something sensible;
+		def.maxForce = 2f;//set something sensible;
+		def.maxTorque = 2f;//set something sensible;
 		FrictionJoint joint = (FrictionJoint) WORLD.createJoint(def);
 		
 		b2dr = new Box2DDebugRenderer();
@@ -111,7 +112,7 @@ public class INDAGame extends ApplicationAdapter {
 		camera = new OrthographicCamera(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 		viewport = new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
 
-		camera.position.set(camera.viewportWidth/2f,camera.viewportHeight/2f,0);
+		//camera.position.set(camera.viewportWidth/2f,camera.viewportHeight/2f,0);
 		//-------------------------------------------***
 		
 		//Setup the sprite batch
@@ -123,13 +124,13 @@ public class INDAGame extends ApplicationAdapter {
         tileMap = new TmxMapLoader().load(Gdx.files.internal("maps/level.tmx").path());
         tiledMapRenderer = new OrthogonalTiledMapRenderer(tileMap, 1/32f);
         TiledMapTileLayer layer0 = (TiledMapTileLayer) tileMap.getLayers().get(0);
-        Vector3 center = new Vector3(layer0.getWidth() * layer0.getTileWidth() / 2, layer0.getHeight() * layer0.getTileHeight() / 2, 0);
+        Vector3 center = new Vector3(layer0.getWidth() * layer0.getTileWidth() / (2 * 32f), layer0.getHeight() * layer0.getTileHeight() / (2 * 32f), 0);
                 
         MapBodyBuilder mb = new MapBodyBuilder();
         mb.buildShapes(tileMap, B2DVars.PPM, WORLD);
         //--------------------------*******************
         
-        
+        camera.position.set(center);
         camera.update();
 
         
@@ -144,20 +145,20 @@ public class INDAGame extends ApplicationAdapter {
 	
 	@Override
 	public void render () {
-        //Clear screen
-        Gdx.gl.glClearColor(1, 1, 1, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+    //Clear screen
+    Gdx.gl.glClearColor(1, 1, 1, 1);
+    Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        camera.update();
-        batch.setProjectionMatrix(camera.combined);
+    camera.update();
+    batch.setProjectionMatrix(camera.combined);
 
-        //Update statetime and physics
+    //Update statetime and physics
     stateTime += Gdx.graphics.getDeltaTime();
-    update(stateTime);
+    update(timeStep);
    
     tiledMapRenderer.setView(camera);
     tiledMapRenderer.render();
-    b2dr.render(WORLD, camera.combined);
+  //  b2dr.render(WORLD, camera.combined);
 
     handleInputs();
                        
@@ -165,7 +166,6 @@ public class INDAGame extends ApplicationAdapter {
     batch.draw(player.Animation().getKeyFrame(stateTime, true), player.body.getPosition().x - 0.5f, player.body.getPosition().y - 0.45f, 1, 1);
     batch.end();
 
-    System.out.println(camera.viewportWidth + "  " + player.body.getLinearVelocity() + " " + MAX_MOVE_SPEED);
    
     if(Gdx.input.isKeyPressed(Input.Keys.Q))
         Gdx.app.exit();

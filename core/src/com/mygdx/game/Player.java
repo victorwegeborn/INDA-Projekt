@@ -61,7 +61,7 @@ public Player(boolean player1, Vector2 position){
 	FixtureDef fdef = new FixtureDef();
 	
 	PolygonShape shape = new PolygonShape();	//The box collider
-	shape.setAsBox(0.4f, 0.4f);			//The box collider
+	shape.setAsBox(0.25f, 0.4f);			//The box collider
 	fdef.shape = shape;
 	fdef.filter.categoryBits = B2DVars.BIT_PLAYER;
 	fdef.filter.maskBits = B2DVars.BIT_BOX | B2DVars.BIT_WALL | B2DVars.BIT_ITEM | B2DVars.BIT_EVERYTHING;;
