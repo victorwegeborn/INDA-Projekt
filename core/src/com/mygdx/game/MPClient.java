@@ -28,10 +28,6 @@ public class MPClient {
 			ex.printStackTrace();
 		}
 		
-		Login e = new Login();
-		e.name = "Miranda Beyer";
-		
-		client.sendTCP(e); 
 		
 	}
 	

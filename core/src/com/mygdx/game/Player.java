@@ -1,4 +1,4 @@
-package com.mygdx.game;
+	package com.mygdx.game;
 import static com.mygdx.game.B2DVars.PPM;
 import static com.mygdx.game.INDAGame.WORLD;
 
