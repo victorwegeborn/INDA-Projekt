@@ -3,14 +3,14 @@
  <tileset firstgid="1" name="Tileset" tilewidth="32" tileheight="32">
   <image source="../sprites/tiles/Tileset.png" width="128" height="128"/>
  </tileset>
- <layer name="Background" width="19" height="9">
+ <layer name="Floor" width="19" height="9">
   <data encoding="base64" compression="zlib">
-   eJzjZWBgYARiJgowMxDzQjErELNRgNlHzRp2ZnEyUAa4oeYAAFPHA+s=
+   eJxjYKA+YKMAj5o1PM2iBgAAUWkCdw==
   </data>
  </layer>
  <layer name="Pillars" width="19" height="9">
   <data encoding="base64" compression="zlib">
-   eJxjYBj8QIBMmtZg1F30BQDGOwFR
+   eJzjZWBgYARiJgowMxDzQjErA2WAHYtZAmTS2MwadRf93cVJoVncUHMAyJkCxQ==
   </data>
  </layer>
  <layer name="RenderAbove" width="19" height="9">
@@ -20,7 +20,7 @@
  </layer>
  <layer name="Boxes" width="19" height="9">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFo2BoAAACrAAB
+   eJxjYaAOYIHiUbNGzaKVWQBjbABJ
   </data>
  </layer>
  <objectgroup name="Colliders">

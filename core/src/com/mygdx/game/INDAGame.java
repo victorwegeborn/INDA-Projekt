@@ -56,8 +56,10 @@ public class INDAGame extends ApplicationAdapter {
 	// The level
 	private TiledMap tileMap;
 	private BatchTiledMapRenderer batch_tiledMapRenderer;
-	private static int[] bottomlayers = {0 ,1};
-	private static int[] toplayers = {2};
+	private static int[] bottomlayers = {0 , 1, 5}; //0: Floor, 1: Pillars, 5: Boxes
+	private static int[] toplayers = {2}; //2: All sprites to render last
+	
+	private TiledMapTileLayer boxLayer;
 	//
 
 	
@@ -94,16 +96,19 @@ public class INDAGame extends ApplicationAdapter {
 		shape.dispose();
 		// ----------------------------------***
 
-		player = new Player(true, new Vector2(2, 2));
+		// Create players---------------------***
+		player = new Player(true, new Vector2(3, 2));
 
-		// Join player to friction floor-----***
+		// Join players to friction floor
 		FrictionJointDef def = new FrictionJointDef();
 		def.bodyA = FRICTION;
 		def.bodyB = player.body;
 		def.maxForce = 2f;// set something sensible;
 		def.maxTorque = 2f;// set something sensible;
 		FrictionJoint joint = (FrictionJoint) WORLD.createJoint(def);
+		
 		// ----------------------------------***
+		
 
 		b2dr = new Box2DDebugRenderer();
 
@@ -127,14 +132,21 @@ public class INDAGame extends ApplicationAdapter {
 				/ (2 * 32f), layer0.getHeight() * layer0.getTileHeight()
 				/ (2 * 32f), 0);
 
-		MapBodyBuilder mb = new MapBodyBuilder();
-		mb.buildShapes(tileMap, B2DVars.PPM, WORLD);
+		
+		MapBodyBuilder.buildShapes(tileMap, B2DVars.PPM, WORLD, B2DVars.BIT_WALL);  //Build walls
+		
+		boxLayer = MapRandomizer.fillMap(WORLD, tileMap, 50); //Construct random boxes
+		tileMap.getLayers().add(boxLayer);
 		// --------------------------*******************
 
 		camera.position.set(center);
 		camera.update();
 
 		stateTime = 0.0f;
+		
+		//****DEBUG****//
+				
+		//*************//
 
 	}
 
@@ -146,6 +158,7 @@ public class INDAGame extends ApplicationAdapter {
 	@Override
 	public void render() {
 		handleInputs();
+		
 		// Clear screen
 		Gdx.gl.glClearColor(1, 1, 1, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -160,23 +173,26 @@ public class INDAGame extends ApplicationAdapter {
 		
 		batch_tiledMapRenderer.setView(camera);
 		batch_tiledMapRenderer.render(bottomlayers);
-		//b2dr.render(WORLD, camera.combined);
-
-
 
 		batch.begin();
 		batch.draw(player.Animation().getKeyFrame(stateTime, true),
 				player.body.getPosition().x - 0.5f,
-				player.body.getPosition().y - 0.35f, 1, 1);
+				player.body.getPosition().y - 0.3f, 1, 1);
 		batch.end();
 		
 		batch_tiledMapRenderer.render(toplayers);
+		
+	//	b2dr.render(WORLD, camera.combined);
 
-		if (Gdx.input.isKeyPressed(Input.Keys.Q))
-			Gdx.app.exit();
 	}
 
 	private void handleInputs() {
+		
+		if(Gdx.input.isKeyPressed(Input.Keys.T))
+			System.out.println("Bodies in world: " + WORLD.getBodyCount());
+
+		if (Gdx.input.isKeyPressed(Input.Keys.Q))
+			Gdx.app.exit();
 
 		if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
 			player.SetState(State.Left);
@@ -216,6 +232,7 @@ public class INDAGame extends ApplicationAdapter {
 
 			return;
 		}
+		
 
 		/**
 		 * Zoom-controls for dev-purposes
