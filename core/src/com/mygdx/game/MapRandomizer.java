@@ -66,6 +66,14 @@ public final class MapRandomizer {
 	tileBlocked[15][1] = true; //
 	//----------------------------------------------***
 	
+	//Set required tiles----------------------------***
+	boolean[][] placeTile = new boolean[mapWidth][mapHeight];
+	
+	placeTile[2][4] = true;  //Keep left players separated
+	
+	placeTile[16][4] = true; //Keep right players separated
+	//----------------------------------------------***
+	
 	
 	//Creates two layers of the same tile-dimension and area as map, one for tiles and one for colliders
 	TiledMapTileLayer boxLayer = new TiledMapTileLayer(mapWidth, mapHeight, tilePixelWidth, tilePixelHeight);
@@ -82,7 +90,7 @@ public final class MapRandomizer {
 				continue;
 			}
 			
-			if(random.nextInt(32) > 10 && boxesToPlace > 0){
+			if(placeTile[w][h] || random.nextInt(32) > 10 && boxesToPlace > 0){
 				MapObject m = new RectangleMapObject(w*32f, h*32f, 32f, 32f);
 				boxColliders.getObjects().add(m);
 				
