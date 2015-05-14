@@ -61,7 +61,7 @@ public Player(boolean player1, Vector2 position){
 	FixtureDef fdef = new FixtureDef();
 	
 	PolygonShape shape = new PolygonShape();	//The box collider
-	shape.setAsBox(0.25f, 0.4f);			//The box collider
+	shape.setAsBox(0.25f, 0.3f);			//The box collider
 	fdef.shape = shape;
 	fdef.filter.categoryBits = B2DVars.BIT_PLAYER;
 	fdef.filter.maskBits = B2DVars.BIT_BOX | B2DVars.BIT_WALL | B2DVars.BIT_ITEM | B2DVars.BIT_EVERYTHING;;
@@ -99,8 +99,8 @@ public Player(boolean player1, Vector2 position){
 	downAnim.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
 	downIdleAnim = new Animation(framerate, spriteSheet.findRegion("down", 4));
 
-	rightAnim = new Animation(framerate * 1.25f, spriteSheet.findRegions("side"));
-	rightAnim.setPlayMode(Animation.PlayMode.LOOP);
+	rightAnim = new Animation(framerate, spriteSheet.findRegions("side"));
+	rightAnim.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
 	rightIdleAnim = new Animation(framerate * 1.25f, spriteSheet.findRegion("side", 4));
 
 	
@@ -108,8 +108,8 @@ public Player(boolean player1, Vector2 position){
 	for(TextureAtlas.AtlasRegion a : left)
 		a.flip(true, false);
 	
-	leftAnim = new Animation(framerate * 1.25f, left);
-	leftAnim.setPlayMode(Animation.PlayMode.LOOP);
+	leftAnim = new Animation(framerate, left);
+	leftAnim.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
 	leftIdleAnim = new Animation(framerate * 1.25f, left.get(3));
 
 	//---------------------------------***

@@ -156,7 +156,7 @@ public class INDAGame extends ApplicationAdapter {
 
 		tiledMapRenderer.setView(camera);
 		tiledMapRenderer.render();
-		// b2dr.render(WORLD, camera.combined);
+		//b2dr.render(WORLD, camera.combined);
 
 		handleInputs();
 
