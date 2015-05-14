@@ -1,6 +1,7 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.maps.Map;
+import com.badlogic.gdx.maps.MapLayer;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.MapObjects;
 import com.badlogic.gdx.maps.objects.CircleMapObject;
@@ -27,8 +28,15 @@ public class MapBodyBuilder {
 
     // The pixels per tile. If your tiles are 16x16, this is set to 16f
     private static float ppt = 0;
+    
+    public static Array<Body> buildShapesFromLayer(MapLayer mapLayer, float pixels, World world, short collisionLayer){
+    	Map map = new Map();
+    	map.getLayers().add(mapLayer);
+    	map.getLayers().get(0).setName("Colliders");
+    	return buildShapes(map, pixels, world, collisionLayer);
+    }
 
-    public static Array<Body> buildShapes(Map map, float pixels, World world) {
+    public static Array<Body> buildShapes(Map map, float pixels, World world, short collisionLayer) {
         ppt = pixels;
         
         MapObjects objects = map.getLayers().get("Colliders").getObjects();
@@ -67,7 +75,7 @@ public class MapBodyBuilder {
             BodyDef bdef = new BodyDef();
             bdef.type = BodyType.StaticBody;
             FixtureDef fdef = new FixtureDef();
-            fdef.filter.categoryBits = B2DVars.BIT_WALL;
+            fdef.filter.categoryBits = collisionLayer;
         	fdef.filter.maskBits = B2DVars.BIT_PLAYER;
         	fdef.shape = shape;
             Body body = world.createBody(bdef);
