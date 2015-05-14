@@ -25,11 +25,6 @@ private State state;
 
 public Body body;
 
-private boolean _isFacingRight,_isFacingUp;
-private float stateTime;
-private Vector3 position, velocity;
-private float width, height;
-
 //Player sprites and animation
 private TextureAtlas spriteSheet;
 private Animation upAnim, upIdleAnim, downAnim, downIdleAnim,
@@ -61,23 +56,17 @@ public Player(boolean player1, Vector2 position){
 	FixtureDef fdef = new FixtureDef();
 	
 	PolygonShape shape = new PolygonShape();	//The box collider
-	shape.setAsBox(0.25f, 0.3f);			//The box collider
+	shape.setAsBox(0.25f, 0.3f);				//The box collider
 	fdef.shape = shape;
+	//Collision mask---* 
 	fdef.filter.categoryBits = B2DVars.BIT_PLAYER;
 	fdef.filter.maskBits = B2DVars.BIT_BOX | B2DVars.BIT_WALL | B2DVars.BIT_ITEM | B2DVars.BIT_EVERYTHING;;
+	//-----------------*
 	body = WORLD.createBody(bdef);
 	body.createFixture(fdef).setUserData("player");
 	shape.dispose();
 
 	
-	
-	
-	velocity = new Vector3();
-	_isFacingRight = true;
-	stateTime = 0;
-	_isFacingUp = true;
-	
-	//TODO: Default idle states for player 1 and player 2
 	state = State.Down;
 	
 	//TODO: If player1 == false, construct using player 2 sprite sheet
