@@ -66,11 +66,12 @@ public Player(boolean player1, Vector2 position){
 	body.createFixture(fdef).setUserData("player");
 	shape.dispose();
 
-	
+	//Initialize state to down
 	state = State.Down;
 	
 	//TODO: If player1 == false, construct using player 2 sprite sheet
-	//spriteSheet = player1 == true ? [player1sheet] : [player2sheet];
+	//i.e. using spriteSheet = player1 == true ? [player1sheet] : [player2sheet];
+	//If more players are to be integrated, consider a switch statement
 	
 	
 	

@@ -16,6 +16,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
+import com.badlogic.gdx.maps.tiled.renderers.BatchTiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
@@ -46,19 +47,20 @@ public class INDAGame extends ApplicationAdapter {
 	private static final float MAX_MOVE_SPEED = 3f;
 
 	// Screen size and resolution
-	private static final int VIRTUAL_HEIGHT = 9;
-	private static final int VIRTUAL_WIDTH = 16;
+	private static final int VIRTUAL_HEIGHT = 9; //Height in world units, 1 unit = 1 tile
+	private static final int VIRTUAL_WIDTH = 16; // Width in world units, 1 unit = 1 tile
 	private Viewport viewport;
 	private OrthographicCamera camera;
 	//
 
 	// The level
 	private TiledMap tileMap;
-	private TiledMapRenderer tiledMapRenderer;
+	private BatchTiledMapRenderer batch_tiledMapRenderer;
+	private static int[] bottomlayers = {0 ,1};
+	private static int[] toplayers = {2};
 	//
 
-	private Sprite sprite;
-
+	
 	float stateTime;
 
 	@Override
@@ -118,7 +120,7 @@ public class INDAGame extends ApplicationAdapter {
 		// Map loading and rendering*******************
 		tileMap = new TmxMapLoader().load(Gdx.files.internal("maps/level.tmx")
 				.path());
-		tiledMapRenderer = new OrthogonalTiledMapRenderer(tileMap, 1 / 32f);
+		batch_tiledMapRenderer = new OrthogonalTiledMapRenderer(tileMap, 1 / 32f);
 		TiledMapTileLayer layer0 = (TiledMapTileLayer) tileMap.getLayers().get(
 				0);
 		Vector3 center = new Vector3(layer0.getWidth() * layer0.getTileWidth()
@@ -143,6 +145,7 @@ public class INDAGame extends ApplicationAdapter {
 
 	@Override
 	public void render() {
+		handleInputs();
 		// Clear screen
 		Gdx.gl.glClearColor(1, 1, 1, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -154,17 +157,20 @@ public class INDAGame extends ApplicationAdapter {
 		stateTime += Gdx.graphics.getDeltaTime();
 		update(timeStep);
 
-		tiledMapRenderer.setView(camera);
-		tiledMapRenderer.render();
+		
+		batch_tiledMapRenderer.setView(camera);
+		batch_tiledMapRenderer.render(bottomlayers);
 		//b2dr.render(WORLD, camera.combined);
 
-		handleInputs();
+
 
 		batch.begin();
 		batch.draw(player.Animation().getKeyFrame(stateTime, true),
 				player.body.getPosition().x - 0.5f,
-				player.body.getPosition().y - 0.45f, 1, 1);
+				player.body.getPosition().y - 0.35f, 1, 1);
 		batch.end();
+		
+		batch_tiledMapRenderer.render(toplayers);
 
 		if (Gdx.input.isKeyPressed(Input.Keys.Q))
 			Gdx.app.exit();
