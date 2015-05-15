@@ -3,6 +3,7 @@ package com.mygdx.NGame;
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -52,6 +53,7 @@ public class NMainMenu implements Screen {
 	public NMainMenu(final NGame game) {
 		this.game = game;
 		
+		
 		stage = new Stage();
 		Gdx.input.setInputProcessor(stage);
 		font = MGameVars.DEFAULT_FONT;
@@ -81,7 +83,22 @@ public class NMainMenu implements Screen {
 		}
 		selected[0] = 1;
 		
-	
+		
+		// Set up input for menu
+		Gdx.input.setInputProcessor(new InputAdapter() {
+			public boolean keyDown(int keycode) {
+				
+				switch(keycode) {
+				case Input.Keys.UP: moveSelectionUp();
+									break;
+				case Input.Keys.DOWN: moveSelectionDown();
+									  break;
+				}
+				
+				return true;
+			}
+		});
+		
 	}
 	
 	
@@ -90,8 +107,7 @@ public class NMainMenu implements Screen {
 	@Override
 	public void render(float delta) {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		
-		handleInputs();
+
 		
 		stage.draw();
 		
@@ -112,29 +128,26 @@ public class NMainMenu implements Screen {
 			Gdx.app.exit();
 	}
 	
-	private void handleInputs() {
-		
-		if(Gdx.input.isKeyPressed(Input.Keys.UP) && !Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-			for(int i = 0; i < selected.length; i++) {
-				if(selected[i] == 1 && i == 0)
-					break;
-				else if(selected[i] == 1) {
-					selected[i-1] = 1;
-					selected[i] = 0;
-					break;
-				}
+	private void moveSelectionUp() {
+		for(int i = 0; i < selected.length; i++) {
+			if(selected[i] == 1 && i == 0)
+				break;
+			else if(selected[i] == 1) {
+				selected[i-1] = 1;
+				selected[i] = 0;
+				break;
 			}
 		}
-		
-		if(Gdx.input.isKeyPressed(Input.Keys.DOWN) && !Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
-			for(int i = 0; i < selected.length; i++) {
-				if(selected[i] == 1 && i == 3)
-					break;
-				else if(selected[i] == 1) {
-					selected[i+1] = 1;
-					selected[i] = 0;
-					break;
-				}
+	}
+	
+	private void moveSelectionDown() {
+		for(int i = 0; i < selected.length; i++) {
+			if(selected[i] == 1 && i == 3)
+				break;
+			else if(selected[i] == 1) {
+				selected[i+1] = 1;
+				selected[i] = 0;
+				break;
 			}
 		}
 	}
