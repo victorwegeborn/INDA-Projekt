@@ -47,6 +47,7 @@ public class NMainMenu implements Screen {
 	private Skin skin;
 	private TextureAtlas atlas;
 
+	private int[] selected;
 	
 	public NMainMenu(final NGame game) {
 		this.game = game;
@@ -55,8 +56,9 @@ public class NMainMenu implements Screen {
 		Gdx.input.setInputProcessor(stage);
 		font = MGameVars.DEFAULT_FONT;
 		
+		regions = new TextureRegion[8];
 		//Set up texture
-		buttonTexture = new Texture(Gdx.files.internal("assets/sprites/buttons/ph_buttons.png"));
+		buttonTexture = new Texture(Gdx.files.internal("sprites/buttons/ph_buttons.png"));
 		batch = new SpriteBatch();
 		
 		//Make regions out of texture ( texture,      X, Y, width, height)
@@ -70,10 +72,16 @@ public class NMainMenu implements Screen {
 		regions[6] = new TextureRegion(buttonTexture, 0,   192, 256, 64);
 		regions[7] = new TextureRegion(buttonTexture, 256, 192, 256, 64);
 		
+		// Keep track of wich is selected.
+		selected = new int[4];
 		
+		//Initialize
+		for(int i = 0; i<selected.length; i++) {
+			selected[i] = 0;
+		}
+		selected[0] = 1;
 		
-		
-		
+	
 	}
 	
 	
@@ -83,11 +91,18 @@ public class NMainMenu implements Screen {
 	public void render(float delta) {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		
+		handleInputs();
+		
 		stage.draw();
 		
 		batch.begin();
 		
-		batch.draw(regions[0], 100, 100);
+		
+		
+		batch.draw(regions[0 + selected[0]], Gdx.graphics.getWidth()/2 - 128, Gdx.graphics.getHeight()/2 + 64);
+		batch.draw(regions[2 + selected[1]], Gdx.graphics.getWidth()/2 - 128, Gdx.graphics.getHeight()/2);
+		batch.draw(regions[4 + selected[2]], Gdx.graphics.getWidth()/2 - 128, Gdx.graphics.getHeight()/2 - 64);
+		batch.draw(regions[6 + selected[3]], Gdx.graphics.getWidth()/2 - 128, Gdx.graphics.getHeight()/2 - 128);
 		
 		batch.end();
 		
@@ -96,6 +111,36 @@ public class NMainMenu implements Screen {
 		if(Gdx.input.isKeyPressed(Input.Keys.ESCAPE))
 			Gdx.app.exit();
 	}
+	
+	private void handleInputs() {
+		
+		if(Gdx.input.isKeyPressed(Input.Keys.UP) && !Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+			for(int i = 0; i < selected.length; i++) {
+				if(selected[i] == 1 && i == 0)
+					break;
+				else if(selected[i] == 1) {
+					selected[i-1] = 1;
+					selected[i] = 0;
+					break;
+				}
+			}
+		}
+		
+		if(Gdx.input.isKeyPressed(Input.Keys.DOWN) && !Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+			for(int i = 0; i < selected.length; i++) {
+				if(selected[i] == 1 && i == 3)
+					break;
+				else if(selected[i] == 1) {
+					selected[i+1] = 1;
+					selected[i] = 0;
+					break;
+				}
+			}
+		}
+	}
+	
+	
+	
 	
 	@Override
 	public void show() {
@@ -132,5 +177,7 @@ public class NMainMenu implements Screen {
 		// TODO Auto-generated method stub
 		
 	}
+	
+	
 
 }
