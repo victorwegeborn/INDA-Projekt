@@ -16,13 +16,16 @@ import com.badlogic.gdx.physics.box2d.Manifold;
  */
 public class ContactHandler implements ContactListener {
 
+	@Override
 	public void beginContact(Contact c) {
 		Fixture fa = c.getFixtureA(); 
 		Fixture fb = c.getFixtureB();
-		
+		System.out.println("COLLISION");
 		System.out.println(fa + " " + " " + fb);
+		
 		//Use f.getUserData() to identify the fixtures.
-		//Note that order of fixtures vary, i.e. "player" is not always Fixture A
+		//Note that order of fixtures vary
+		
 		if(fa.getUserData() != null && fa.getUserData().equals("player")){
 			//DO STUFF
 		}
@@ -32,7 +35,21 @@ public class ContactHandler implements ContactListener {
 		}
 	}
 
+	@Override
  	public void endContact(Contact c) {	
+ 		Fixture fa = c.getFixtureA(); 
+		Fixture fb = c.getFixtureB();
+		System.out.println("END COLLISION");
+		System.out.println(fa + " " + " " + fb);
+		
+		
+		if(fa.getUserData() != null && fa.getUserData().equals("player")){
+			//DO STUFF
+		}
+		
+		if(fb.getUserData() != null && fb.getUserData().equals("player")){
+			//DO STUFF
+		}
 	}
 
 	public void preSolve(Contact contact, Manifold oldManifold) {

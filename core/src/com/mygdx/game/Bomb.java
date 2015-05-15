@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 
@@ -16,7 +17,9 @@ public class Bomb {
 	
 	//Pool variables
 	public boolean active;
+	public boolean detonate;
 	private Vector2 poolPosition;
+	public Vector2 detonatePosition;
 
 	
 	public Body body; //Body for easy positioning in world
@@ -48,6 +51,7 @@ public class Bomb {
 		body = world.createBody(bdef);
 		body.setType(BodyType.KinematicBody); // Set bomb bodies to ignore physics
 		body.setTransform(poolPosition, 0); //Set body at pool position
+		FixtureDef fdef = new FixtureDef();
 		
 		
 		state = State.Idle;
@@ -68,7 +72,8 @@ public class Bomb {
 		timer -= dt;
 		
 		if(timer <= 0){
-			Detonate();
+			detonate = true;
+			detonatePosition = body.getPosition();
 			Reset();
 		}
 	}
@@ -81,6 +86,9 @@ public class Bomb {
 		//TODO: Reset to pool
 		active = false;
 		timer = timeToDetonate;
+		
+		//Return to pool position in world space
+		body.setTransform(poolPosition, 0);
 	}
 
 	public Animation Animation(){		

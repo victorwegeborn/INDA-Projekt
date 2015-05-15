@@ -13,6 +13,7 @@ public final class B2DVars {
 	public static final short BIT_EVERYTHING = -1;
 	public static final short BIT_FRICTION = 32;
 	public static final short BIT_NOTHING = 64;
+	public static final short BIT_FIRE = 128;
 	
 
 }

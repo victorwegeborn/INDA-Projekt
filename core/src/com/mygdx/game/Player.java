@@ -45,6 +45,7 @@ private int speedCount;
 
 public Player(boolean player1, Vector2 position){
 	
+	Vector2 spawnPosition = CoordinateConverter.quantizePositionToGrid(position);
 	droppedBombs = 0;
 	bombCount = 1;
 	fireLength = 1;
@@ -52,7 +53,7 @@ public Player(boolean player1, Vector2 position){
 	
 	//Create player body
 	BodyDef bdef = new BodyDef();
-	bdef.position.set(position);
+	bdef.position.set(spawnPosition);
 	bdef.type = BodyType.DynamicBody;
 	
 	FixtureDef fdef = new FixtureDef();
@@ -62,7 +63,7 @@ public Player(boolean player1, Vector2 position){
 	fdef.shape = shape;
 	//Collision mask---* 
 	fdef.filter.categoryBits = B2DVars.BIT_PLAYER;
-	fdef.filter.maskBits = B2DVars.BIT_BOX | B2DVars.BIT_WALL | B2DVars.BIT_ITEM | B2DVars.BIT_EVERYTHING;;
+	fdef.filter.maskBits = B2DVars.BIT_BOX | B2DVars.BIT_WALL | B2DVars.BIT_ITEM | B2DVars.BIT_FIRE;
 	//-----------------*
 	body = WORLD.createBody(bdef);
 	body.createFixture(fdef).setUserData("player");
@@ -71,44 +72,51 @@ public Player(boolean player1, Vector2 position){
 	//Initialize state to down
 	state = State.Down;
 	
-	//TODO: If player1 == false, construct using player 2 sprite sheet
-	//i.e. using spriteSheet = player1 == true ? [player1sheet] : [player2sheet];
-	//If more players are to be integrated, consider a switch statement
 	
 	
 	
 	
-	//Construct animations for player--***
-	float framerate = 1/24f;
-	spriteSheet = new TextureAtlas(Gdx.files.internal("sprites/characters/ninja1.txt"));
-	
-	upAnim = new Animation(framerate, spriteSheet.findRegions("up"));
-	upAnim.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
-	upIdleAnim = new Animation(framerate, spriteSheet.findRegion("up", 4));
+	CreateAnimations();
 
 	
-	downAnim = new Animation(framerate, spriteSheet.findRegions("down"));
-	downAnim.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
-	downIdleAnim = new Animation(framerate, spriteSheet.findRegion("down", 4));
+	}
 
-	rightAnim = new Animation(framerate, spriteSheet.findRegions("side"));
-	rightAnim.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
-	rightIdleAnim = new Animation(framerate * 1.25f, spriteSheet.findRegion("side", 4));
+	private void CreateAnimations(){
 
-	
-	Array<TextureAtlas.AtlasRegion> left = spriteSheet.findRegions(("side"));
-	for(TextureAtlas.AtlasRegion a : left)
-		a.flip(true, false);
-	
-	leftAnim = new Animation(framerate, left);
-	leftAnim.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
-	leftIdleAnim = new Animation(framerate * 1.25f, left.get(3));
+		//TODO: If player1 == false, construct using player 2 sprite sheet
+		//i.e. using spriteSheet = player1 == true ? [player1sheet] : [player2sheet];
+		//If more players are to be integrated, consider a switch statement
+		
+		float framerate = 1/24f;
+		spriteSheet = new TextureAtlas(Gdx.files.internal("sprites/characters/ninja1.txt"));
+		
+		upAnim = new Animation(framerate, spriteSheet.findRegions("up"));
+		upAnim.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
+		upIdleAnim = new Animation(framerate, spriteSheet.findRegion("up", 4));
 
-	//---------------------------------***
-	
-	
-	
-	
+		
+		downAnim = new Animation(framerate, spriteSheet.findRegions("down"));
+		downAnim.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
+		downIdleAnim = new Animation(framerate, spriteSheet.findRegion("down", 4));
+
+		rightAnim = new Animation(framerate, spriteSheet.findRegions("side"));
+		rightAnim.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
+		rightIdleAnim = new Animation(framerate * 1.25f, spriteSheet.findRegion("side", 4));
+		
+		
+		/**
+		 * Left running animation needs to be mirrored
+		 */
+		Array<TextureAtlas.AtlasRegion> left = spriteSheet.findRegions(("side"));
+		for(TextureAtlas.AtlasRegion a : left)
+			a.flip(true, false);
+		
+		leftAnim = new Animation(framerate, left);
+		leftAnim.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
+		leftIdleAnim = new Animation(framerate * 1.25f, left.get(3));
+
+		
+		
 	}
 
 	public void SetState(State state){

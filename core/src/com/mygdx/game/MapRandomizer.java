@@ -102,7 +102,7 @@ public final class MapRandomizer {
 		}
 	}
 	
-	MapBodyBuilder.buildShapesFromLayer(boxColliders, 32f, world, B2DVars.BIT_BOX);
+	MapBodyBuilder.buildShapesFromLayer(boxColliders, 32f, world, B2DVars.BIT_BOX, "box");
 	return boxLayer;
 	}
 }

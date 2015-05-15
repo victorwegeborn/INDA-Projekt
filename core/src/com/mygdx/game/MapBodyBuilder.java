@@ -29,14 +29,14 @@ public class MapBodyBuilder {
     // The pixels per tile. If your tiles are 16x16, this is set to 16f
     private static float ppt = 0;
     
-    public static Array<Body> buildShapesFromLayer(MapLayer mapLayer, float pixels, World world, short collisionLayer){
+    public static Array<Body> buildShapesFromLayer(MapLayer mapLayer, float pixels, World world, short collisionLayer, String description){
     	Map map = new Map();
     	map.getLayers().add(mapLayer);
     	map.getLayers().get(0).setName("Colliders");
-    	return buildShapes(map, pixels, world, collisionLayer);
+    	return buildShapes(map, pixels, world, collisionLayer, description);
     }
 
-    public static Array<Body> buildShapes(Map map, float pixels, World world, short collisionLayer) {
+    public static Array<Body> buildShapes(Map map, float pixels, World world, short collisionLayer, String description) {
         ppt = pixels;
         
         MapObjects objects = map.getLayers().get("Colliders").getObjects();
@@ -76,11 +76,11 @@ public class MapBodyBuilder {
             bdef.type = BodyType.StaticBody;
             FixtureDef fdef = new FixtureDef();
             fdef.filter.categoryBits = collisionLayer;
-        	fdef.filter.maskBits = B2DVars.BIT_PLAYER;
+        	fdef.filter.maskBits = B2DVars.BIT_PLAYER | B2DVars.BIT_FIRE;
         	fdef.shape = shape;
             Body body = world.createBody(bdef);
-            Fixture f = body.createFixture(fdef);
-          
+            body.createFixture(fdef).setUserData(description);
+            body.setUserData(description);
 
             bodies.add(body);
 
