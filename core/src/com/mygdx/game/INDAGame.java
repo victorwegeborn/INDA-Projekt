@@ -34,15 +34,17 @@ public class INDAGame extends ApplicationAdapter {
 	Texture img;
 
 	// TODO: Migrate to server!
-	public static World WORLD;
+	public static World WORLD; // Physics world
 	private Player player;
-	private Player enemy;
-	public static Body FRICTION;
-	private static float timeStep = 1f / 60f;
+	private Player[] allplayers;
+	
+	public static Body FRICTION; // Body used to maintain friction between players and floor
+	private static float timeStep = 1f / 60f; // Interval of physics simulation
 
+	
 	private Box2DDebugRenderer b2dr;
 
-	// Dummy game variables
+	// Dummy game variables, move to Player-class?
 	private static final float MOVE_FORCE = 10f;
 	private static final float MAX_MOVE_SPEED = 3f;
 
@@ -56,12 +58,15 @@ public class INDAGame extends ApplicationAdapter {
 	// The level
 	private TiledMap tileMap;
 	private BatchTiledMapRenderer batch_tiledMapRenderer;
-	private static int[] bottomlayers = {0 , 1, 5}; //0: Floor, 1: Pillars, 5: Boxes
-	private static int[] toplayers = {2}; //2: All sprites to render last
+	private static int[] bottomlayers = {0 , 1, 5} ; //0: Floor, 1: Pillars, 5: Boxes
+	private static int[] toplayers = {2};			 //2: All sprites to render above everything else
 	
 	private TiledMapTileLayer boxLayer;
 	//
 
+	
+	// Debug-variables
+	private static FPSLogger fps = new FPSLogger();
 	
 	float stateTime;
 
@@ -71,7 +76,7 @@ public class INDAGame extends ApplicationAdapter {
 		/*
 		 * The input vector defines gravitational pull on the x- and y-axis of
 		 * the world. 0, 0 = no gravity in either direction. The boolean value
-		 * removes inactive bodies from physics calc.
+		 * removes inactive bodies from physics calculation, be sure to leave as true
 		 */
 		WORLD = new World(new Vector2(0, 0), true);
 
@@ -119,8 +124,8 @@ public class INDAGame extends ApplicationAdapter {
 
 		// Setup the sprite batch
 		batch = new SpriteBatch();
-		batch.setProjectionMatrix(camera.combined); // Define where to project
-													// image
+		batch.setProjectionMatrix(camera.combined); // Define where to project image
+													
 
 		// Map loading and rendering*******************
 		tileMap = new TmxMapLoader().load(Gdx.files.internal("maps/level.tmx")
@@ -144,9 +149,6 @@ public class INDAGame extends ApplicationAdapter {
 
 		stateTime = 0.0f;
 		
-		//****DEBUG****//
-				
-		//*************//
 
 	}
 
@@ -182,17 +184,21 @@ public class INDAGame extends ApplicationAdapter {
 		
 		batch_tiledMapRenderer.render(toplayers);
 		
-	//	b2dr.render(WORLD, camera.combined);
+		//Debug-tools:
+		//	b2dr.render(WORLD, camera.combined);
+		//	fps.log();
+
 
 	}
 
 	private void handleInputs() {
 		
-		if(Gdx.input.isKeyPressed(Input.Keys.T))
-			System.out.println("Bodies in world: " + WORLD.getBodyCount());
 
 		if (Gdx.input.isKeyPressed(Input.Keys.Q))
 			Gdx.app.exit();
+		
+		if (Gdx.input.isKeyPressed(Input.Keys.SPACE))
+			player.DropBomb();
 
 		if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
 			player.SetState(State.Left);
@@ -235,7 +241,7 @@ public class INDAGame extends ApplicationAdapter {
 		
 
 		/**
-		 * Zoom-controls for dev-purposes
+		 * Below are controls for dev-purposes
 		 */
 		if (Gdx.input.isKeyPressed(Input.Keys.I)) {
 			camera.zoom += 0.2f;
@@ -250,6 +256,10 @@ public class INDAGame extends ApplicationAdapter {
 			batch.setProjectionMatrix(camera.combined);
 
 		}
+		
+		if(Gdx.input.isKeyPressed(Input.Keys.T))
+			System.out.println("Bodies in world: " + WORLD.getBodyCount());
+
 
 	}
 

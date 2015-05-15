@@ -32,6 +32,7 @@ leftAnim, leftIdleAnim, rightAnim, rightIdleAnim;
 
 //Player game attributes
 private int bombCount;
+private int droppedBombs;
 private int fireLength;
 private int speedCount;
 
@@ -44,6 +45,7 @@ private int speedCount;
 
 public Player(boolean player1, Vector2 position){
 	
+	droppedBombs = 0;
 	bombCount = 1;
 	fireLength = 1;
 	speedCount = 1;
@@ -132,6 +134,16 @@ public Player(boolean player1, Vector2 position){
 		}
 		
 	}
+	
+	public void DropBomb(){
+		
+		if(droppedBombs > bombCount)
+						return;
+		
+		
+		
+	}
+	
 
 
 }

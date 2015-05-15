@@ -31,7 +31,7 @@ public final class MapRandomizer {
 			
 	//Get the properties of map---------------***
 	MapProperties prop = map.getProperties();
-	int mapWidth = prop.get("width", Integer.class);		 // *** Note these are in tiles, not pixels
+	int mapWidth = prop.get("width", Integer.class);		 // *** These are in tiles, not pixels
 	int mapHeight = prop.get("height", Integer.class); 		 // ***
 	int tilePixelWidth = prop.get("tilewidth", Integer.class);
 	int tilePixelHeight = prop.get("tileheight", Integer.class);
@@ -90,6 +90,7 @@ public final class MapRandomizer {
 				continue;
 			}
 			
+			//If placeTile is true, this tile is a required tile and will spawn
 			if(placeTile[w][h] || random.nextInt(32) > 10 && boxesToPlace > 0){
 				MapObject m = new RectangleMapObject(w*32f, h*32f, 32f, 32f);
 				boxColliders.getObjects().add(m);

@@ -1,0 +1,11 @@
+items.png
+format: RGBA8888
+filter: Nearest, Nearest
+repeat: none
+bomb
+  rotate: false
+  xy: 2, 2
+  size: 18, 19
+  orig: 18, 19
+  offset: 7, -7
+  index: 1
