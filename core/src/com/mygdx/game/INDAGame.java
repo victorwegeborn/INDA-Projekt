@@ -58,12 +58,18 @@ public class INDAGame extends ApplicationAdapter {
 	// The level
 	private TiledMap tileMap;
 	private BatchTiledMapRenderer batch_tiledMapRenderer;
-	private static int[] bottomlayers = {0 , 1, 5} ; //0: Floor, 1: Pillars, 5: Boxes
-	private static int[] toplayers = {2};			 //2: All sprites to render above everything else
+	private static int[] bottomLayers = {0 , 1, 5} ; //0: Floor, 1: Pillars, 5: Boxes
+	private static int[] topLayers = {2};			 //2: All sprites to render above everything else
 	
 	private TiledMapTileLayer boxLayer;
 	//
 
+	
+	// Items
+	private static int pooledBombs = 40;
+	private static Vector2 bombPoolPosition = new Vector2(-10, -10);
+	private static Bomb[] bombs = new Bomb[pooledBombs];
+	
 	
 	// Debug-variables
 	private static FPSLogger fps = new FPSLogger();
@@ -80,6 +86,8 @@ public class INDAGame extends ApplicationAdapter {
 		 */
 		WORLD = new World(new Vector2(0, 0), true);
 
+
+		
 		// Create the world friction floor----***
 		BodyDef bdef = new BodyDef();
 		bdef.type = BodyType.StaticBody;
@@ -110,10 +118,14 @@ public class INDAGame extends ApplicationAdapter {
 		def.bodyB = player.body;
 		def.maxForce = 2f;// set something sensible;
 		def.maxTorque = 2f;// set something sensible;
-		FrictionJoint joint = (FrictionJoint) WORLD.createJoint(def);
-		
+		FrictionJoint joint = (FrictionJoint) WORLD.createJoint(def);	
 		// ----------------------------------***
 		
+		
+		// Establish item pools--------------***
+		for(int b = 0; b < bombs.length; b++)
+			bombs[b] = new Bomb(1, 1, WORLD, bombPoolPosition);
+		//-----------------------------------***
 
 		b2dr = new Box2DDebugRenderer();
 
@@ -174,15 +186,35 @@ public class INDAGame extends ApplicationAdapter {
 
 		
 		batch_tiledMapRenderer.setView(camera);
-		batch_tiledMapRenderer.render(bottomlayers);
+		batch_tiledMapRenderer.render(bottomLayers);
+		
 
+		//Batch BEGIN-----------------------------------***
 		batch.begin();
+	
+		//Draw all other objects---
+		for(Bomb b : bombs){
+			if(b.active){
+				batch.draw(b.Animation().getKeyFrame(stateTime,true), b.body.getPosition().x,
+				b.body.getPosition().y, 1, 1);
+				b.update(Gdx.graphics.getDeltaTime());
+			}
+		}
+		//-------------------------
+		
+		
+		//Draw all players---------
 		batch.draw(player.Animation().getKeyFrame(stateTime, true),
 				player.body.getPosition().x - 0.5f,
 				player.body.getPosition().y - 0.3f, 1, 1);
-		batch.end();
+		//-------------------------
 		
-		batch_tiledMapRenderer.render(toplayers);
+		batch.end();
+		//Batch END----------------------------------------***
+		
+
+		
+		batch_tiledMapRenderer.render(topLayers);
 		
 		//Debug-tools:
 		//	b2dr.render(WORLD, camera.combined);
@@ -190,15 +222,42 @@ public class INDAGame extends ApplicationAdapter {
 
 
 	}
-
+	
+	
+	/**
+	 * Grabs the first inactive bomb in bomb pool,
+	 * places it at players position (quantized to
+	 * nearest tile center)
+	 */
+	
+	private void DropBomb(){
+		
+		for(Bomb b : bombs){
+			if(!b.active){
+					
+				//Flag bomb as active, set state to Ticking
+				b.active = true;
+				b.state = Bomb.State.Ticking;
+		
+				//Quantize player position to nearest tile center and place bomb there
+				Vector2 bombPosition = CoordinateConverter.quantizePositionToGrid(player.body.getPosition());
+				b.body.setTransform(bombPosition, 0);
+		
+				break;
+			}
+			
+		}
+	}
+	
+	
 	private void handleInputs() {
 		
 
 		if (Gdx.input.isKeyPressed(Input.Keys.Q))
 			Gdx.app.exit();
 		
-		if (Gdx.input.isKeyPressed(Input.Keys.SPACE))
-			player.DropBomb();
+		if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE))
+			DropBomb();
 
 		if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
 			player.SetState(State.Left);
@@ -260,7 +319,8 @@ public class INDAGame extends ApplicationAdapter {
 		if(Gdx.input.isKeyPressed(Input.Keys.T))
 			System.out.println("Bodies in world: " + WORLD.getBodyCount());
 
-
+		if(Gdx.input.isKeyJustPressed(Input.Keys.U))
+			System.out.println("Current mouse pos. x: " + Gdx.input.getX() + " y: " + Gdx.input.getY());
 	}
 
 }

@@ -13,9 +13,9 @@ public class DesktopLauncher {
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 
-		//new LwjglApplication(new INDAGame(), config);
+		new LwjglApplication(new INDAGame(), config);
 		//new LwjglApplication(new TestGame(), config);
-		new LwjglApplication(new NGame(), config);
+		//new LwjglApplication(new NGame(), config);
 
 
 		
