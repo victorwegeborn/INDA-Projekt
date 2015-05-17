@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 
@@ -52,6 +53,15 @@ public class Bomb {
 		body.setType(BodyType.KinematicBody); // Set bomb bodies to ignore physics
 		body.setTransform(poolPosition, 0); //Set body at pool position
 		FixtureDef fdef = new FixtureDef();
+		PolygonShape shape = new PolygonShape();
+		shape.setAsBox(0.2f, 0.2f, new Vector2(0.5f, 0.5f), 0);
+		fdef.shape = shape;
+		fdef.filter.categoryBits = B2DVars.BIT_BOMB;
+		fdef.filter.maskBits = B2DVars.BIT_FIRE;
+		body.createFixture(fdef);
+		body.setUserData(this); // Store reference to this bomb in world body
+		shape.dispose();
+		
 		
 		
 		state = State.Idle;
@@ -60,15 +70,15 @@ public class Bomb {
 	
 	}
 	
-	public int getFirePower(){
+	public int GetFirePower(){
 		return firePower;
 	}
 	
-	public void setFirePower(int f){
+	public void SetFirePower(int f){
 		firePower = f;
 	}
 	
-	public void update(float dt){
+	public void Update(float dt){
 		timer -= dt;
 		
 		if(timer <= 0){
@@ -78,8 +88,14 @@ public class Bomb {
 		}
 	}
 	
+	/**
+	 * Flag this bomb for detonation at its position
+	 * and then return it to the pool.
+	 */
 	public void Detonate(){
-		//TODO: Explosion mechanic
+		detonatePosition = body.getPosition();
+		detonate = true;
+		Reset();
 	}
 	
 	public void Reset(){

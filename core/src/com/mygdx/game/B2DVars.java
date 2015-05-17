@@ -12,8 +12,13 @@ public final class B2DVars {
 	public static final short BIT_ITEM = 16;	
 	public static final short BIT_EVERYTHING = -1;
 	public static final short BIT_FRICTION = 32;
-	public static final short BIT_NOTHING = 64;
+	public static final short BIT_BOMB = 64;
 	public static final short BIT_FIRE = 128;
+	
+	
+	public static final int MAX_FIREPOWER = 6;
+	public static final int MAX_SPEED = 3;
+	public static final int MAX_BOMBCAPACITY = 5;
 	
 
 }

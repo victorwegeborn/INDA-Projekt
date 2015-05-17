@@ -203,7 +203,7 @@ public class INDAGame extends ApplicationAdapter {
 			}
 			
 			
-			allPlayers.add(new Player(true, spawnPos));
+			allPlayers.add(new Player(i + 1, spawnPos));
 			def.bodyB = allPlayers.get(i).body;
 			joint = (FrictionJoint) WORLD.createJoint(def);
 		}
@@ -240,8 +240,9 @@ public class INDAGame extends ApplicationAdapter {
 		fdef.shape = shape;
 
 		FRICTION.createFixture(fdef).setUserData("friction floor");
-		FRICTION.setTransform(new Vector2(VIRTUAL_WIDTH / 2f,
-				VIRTUAL_HEIGHT / 2f), 0);
+		
+		//Center friction floor in camera view space 
+		FRICTION.setTransform(new Vector2(VIRTUAL_WIDTH / 2f + 1.5f, VIRTUAL_HEIGHT / 2f), 0);
 		shape.dispose();
 		// ----------------------------------***
 		
@@ -251,7 +252,7 @@ public class INDAGame extends ApplicationAdapter {
 	
 	
 	/**
-	 * Pools needed are for fire, bombs and items
+	 * Pools needed for fire, bombs and items
 	 * All other objects in the game world have a
 	 * static upper count
 	 */
@@ -305,18 +306,18 @@ public class INDAGame extends ApplicationAdapter {
 		
 	}
 	
-	public void update(float dt) {
-		WORLD.step(dt, 1, 1); 
+	public void Update(float dt) {
+		WORLD.step(timeStep, 1, 1); // Note that step is called with a fixed timestep
+		UpdateGameObjects(dt);
 	}
 	
 
 	@Override
 	public void render() {
 		handleInputs();
-		
 		// Update statetime and physics
 		stateTime += Gdx.graphics.getDeltaTime();
-		update(timeStep);
+		Update(Gdx.graphics.getDeltaTime());
 
 
 		
@@ -355,7 +356,7 @@ public class INDAGame extends ApplicationAdapter {
 
 		
 		//Debug-tools, uncomment for visual aid / bug-hunting:
-		//b2dr.render(WORLD, camera.combined);
+		b2dr.render(WORLD, camera.combined);
 		//RenderSquares();
 		//PrintAllContacts();
 		//fps.log();
@@ -363,6 +364,26 @@ public class INDAGame extends ApplicationAdapter {
 
 	}
 	
+	/**
+	 * Calls the Update-method for all active game objects
+	 * @param dt deltatime for updates as float
+	 */
+	private void UpdateGameObjects(float dt){
+		for(Player p : allPlayers){
+			if(!p.Dead())
+				p.Update();	
+		}
+		
+		for(Bomb b : bombs){
+			if(b.active)
+				b.Update(dt);
+		}
+		
+		for(Fire f : fires){
+			if(f.active)
+				f.Update(dt);
+		}
+	}
 	
 	private void RenderSquares(){
 		sRend.setProjectionMatrix(camera.combined);
@@ -407,7 +428,6 @@ public class INDAGame extends ApplicationAdapter {
 			if(b.active && !b.detonate){
 				batch.draw(b.Animation().getKeyFrame(stateTime, true), b.body.getPosition().x,
 				b.body.getPosition().y, 1, 1);
-				b.update(Gdx.graphics.getDeltaTime());
 			}
 			
 			else if(b.detonate){
@@ -426,8 +446,6 @@ public class INDAGame extends ApplicationAdapter {
 		
 		for (Fire f : fires){	
 			if(f.active){
-				f.animTimer += Gdx.graphics.getDeltaTime();
-				f.update();
 				float x = f.body.getPosition().x - 0.5f; //Align animation with body
 				float y = f.body.getPosition().y - 0.5f; //Align animation with body
 				batch.draw(f.Animation().getKeyFrame(f.animTimer), x, y, 1, 1);
@@ -444,7 +462,7 @@ public class INDAGame extends ApplicationAdapter {
 	
 	private void DetonateBomb(Bomb b){
 	
-				int firePower = b.getFirePower();
+				int firePower = b.GetFirePower();
 				
 				float x = b.detonatePosition.x;
 				float y = b.detonatePosition.y;
@@ -594,23 +612,31 @@ public class INDAGame extends ApplicationAdapter {
 	 * nearest tile center)
 	 */
 	
-	private void DropBomb(Player p){
+	private void DropBomb(Player player){
 		
-		for(Bomb b : bombs){
-			if(!b.active){
-					
-				//Flag bomb as active, set state to Ticking
-				b.active = true;
-				b.state = Bomb.State.Ticking;
+		if(!player.CanDropBomb())
+			return;
+		
+		int firePower = player.GetFirePower();
+		
+		for(Bomb bomb : bombs){
+			if(!bomb.active){
+				
+				//Flag bomb as active, set state to Ticking, and set firepower to players current firepower
+				bomb.active = true;
+				bomb.state = Bomb.State.Ticking;
+				bomb.SetFirePower(firePower); 
 		
 				//Quantize player position to nearest tile center and place bomb there
-				Vector2 bombPosition = CoordinateConverter.quantizePositionToGrid(p.body.getPosition());
-				b.body.setTransform(bombPosition, 0);
-		
+				Vector2 bombPosition = CoordinateConverter.quantizePositionToGrid(player.body.getPosition());
+				bomb.body.setTransform(bombPosition, 0);
+				
+				player.RegisterDroppedBomb(bomb);
 				break;
 			}
 			
 		}
+		
 	}
 	
 	

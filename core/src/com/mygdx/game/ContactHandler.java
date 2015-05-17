@@ -47,7 +47,15 @@ public class ContactHandler implements ContactListener {
 		if(otherCategory == B2DVars.BIT_PLAYER){
 			Player p = (Player)other.getBody().getUserData();
 			p.Kill();
+			return;
 		}
+		
+		if(otherCategory == B2DVars.BIT_BOMB){
+		Bomb b = (Bomb)other.getBody().getUserData();
+		b.Detonate();
+		return;
+		}
+			
 		
 	}
 	

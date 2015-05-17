@@ -29,6 +29,11 @@ public class FireRayCastHandler implements RayCastCallback {
 		if(fixtureCategory == B2DVars.BIT_BOX)
 			DestroyBox(fixture);
 		
+		if(fixtureCategory == B2DVars.BIT_BOMB){
+			Bomb b = (Bomb) fixture.getBody().getUserData();
+			b.Detonate();
+		}
+		
 		return hasCollided ? 0 : -1;
 	}
 	

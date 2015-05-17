@@ -46,7 +46,8 @@ public class Fire {
 		FixtureDef fdef = new FixtureDef();
 		fdef.shape = shape;
 		fdef.filter.categoryBits = B2DVars.BIT_FIRE;
-		fdef.filter.maskBits = B2DVars.BIT_BOX | B2DVars.BIT_WALL | B2DVars.BIT_ITEM | B2DVars.BIT_PLAYER;
+		fdef.filter.maskBits = B2DVars.BIT_BOX | B2DVars.BIT_WALL | B2DVars.BIT_ITEM |
+				B2DVars.BIT_PLAYER | B2DVars.BIT_BOMB;
 		shape.dispose();
 		
 		/**
@@ -71,7 +72,8 @@ public class Fire {
 		body.setTransform(poolPosition, 0);
 	}
 	
-	public void update(){
+	public void Update(float dt){
+		animTimer += dt;
 		if(animTimer > animDuration){
 			Reset();
 		}

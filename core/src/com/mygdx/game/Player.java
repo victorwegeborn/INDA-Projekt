@@ -2,6 +2,10 @@ package com.mygdx.game;
 import static com.mygdx.game.B2DVars.PPM;
 import static com.mygdx.game.INDAGame.WORLD;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -25,15 +29,19 @@ private State state;
 
 public Body body;
 
+private int playerNumber;
+
 //Player sprites and animation
 private TextureAtlas spriteSheet;
 private Animation upAnim, upIdleAnim, downAnim, downIdleAnim,
 leftAnim, leftIdleAnim, rightAnim, rightIdleAnim;
 
 //Player game attributes
-private int bombCount;
+private int bombCapacity;
 private int droppedBombs;
-private int fireLength;
+private ArrayList<Bomb> activeBombs;
+private Iterator bombIterator;
+private int firePower;
 private int speedCount;
 
 private boolean killed;
@@ -44,14 +52,24 @@ private boolean killed;
  * @param boolean player1: if true = player 1, false = player 2
  */
 
-public Player(boolean player1, Vector2 position){
+public Player(int player, Vector2 position){
+	
+	if(player < 1)
+		player = 1;
+	
+	if(player > 4)
+		player = 4;
+	
+	playerNumber = player;
 	
 	Vector2 spawnPosition = CoordinateConverter.quantizePositionToGrid(position);
 	droppedBombs = 0;
-	bombCount = 1;
-	fireLength = 1;
+	bombCapacity = 3;
+	firePower = 1;
 	speedCount = 1;
 	killed = false;
+	
+	activeBombs = new ArrayList<Bomb>();
 	
 	//Create player body
 	BodyDef bdef = new BodyDef();
@@ -76,13 +94,7 @@ public Player(boolean player1, Vector2 position){
 	//Initialize state to down
 	state = State.Down;
 	
-	
-	
-	
-	
 	CreateAnimations();
-
-	
 	}
 
 	private void CreateAnimations(){
@@ -112,15 +124,60 @@ public Player(boolean player1, Vector2 position){
 		 * Left running animation needs to be mirrored
 		 */
 		Array<TextureAtlas.AtlasRegion> left = spriteSheet.findRegions(("side"));
+		
 		for(TextureAtlas.AtlasRegion a : left)
 			a.flip(true, false);
 		
 		leftAnim = new Animation(framerate, left);
 		leftAnim.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
 		leftIdleAnim = new Animation(framerate * 1.25f, left.get(3));
-
 		
+	}
+	
+	public void SetBombCapacity(int c){
+		if(c < 1)
+			c = 1;
 		
+		if(c > B2DVars.MAX_BOMBCAPACITY)
+			c = B2DVars.MAX_BOMBCAPACITY;
+		
+		bombCapacity = c;
+	}
+	
+	public void IncrementBombCapacity(){
+		if(bombCapacity < B2DVars.MAX_BOMBCAPACITY)
+			bombCapacity++;
+	}
+	
+	public void SetFirePower(int f){
+		if(f < 1)
+			f = 1;
+		
+		if(f >= B2DVars.MAX_FIREPOWER)
+			f = B2DVars.MAX_FIREPOWER;
+		
+		firePower = f;
+	}
+	
+	public void IncrementFirePower(){
+		if(firePower < B2DVars.MAX_FIREPOWER)
+			firePower++;
+	}
+	
+	public int GetPlayerNumber(){
+		return playerNumber;
+	}
+	
+	public int GetFirePower(){
+		return firePower;
+	}
+	
+	public void RegisterDroppedBomb(Bomb b){
+		activeBombs.add(b);
+	}
+	
+	public boolean CanDropBomb(){
+		return activeBombs.size() < bombCapacity;
 	}
 
 	public void SetState(State state){
@@ -129,6 +186,25 @@ public Player(boolean player1, Vector2 position){
 	
 	public void ClearState(){
 		state = null;
+	}
+	
+	public void Update(){
+		UpdateActiveBombs();
+	}
+	
+	/**
+	 * Check all bombs for activity
+	 */
+	private void UpdateActiveBombs(){
+		bombIterator = activeBombs.iterator();
+		while(bombIterator.hasNext()){
+			Bomb b = (Bomb)bombIterator.next();
+			
+			//If this bomb is no longer active, removes it from list
+			if(!b.active){
+				bombIterator.remove(); 
+			}
+		}
 	}
 	
 	public Animation Animation(){
@@ -150,7 +226,7 @@ public Player(boolean player1, Vector2 position){
 	public void DropBomb(){
 		
 		//TODO: Implement bomb count check and keeping track of placed bombs
-		if(droppedBombs > bombCount)
+		if(droppedBombs > bombCapacity)
 						return;
 		
 	}
