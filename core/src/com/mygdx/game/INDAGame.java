@@ -130,7 +130,7 @@ public class INDAGame extends ApplicationAdapter {
 	
 		CreateWorld();
 		
-		CreatePlayers(4);
+		CreatePlayers(2);
 	
 		InitializeItemPools();
 		
@@ -197,13 +197,13 @@ public class INDAGame extends ApplicationAdapter {
 				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(3, 1));
 				break;
 			case 1:
-				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(3, 8));
+				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(16, 8));
 				break;
 			case 2:
 				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(16, 1));
 				break;
 			case 3:
-				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(16, 8));
+				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(3, 8));
 				break;
 			default:
 				spawnPos = new Vector2(3,2);
@@ -337,7 +337,9 @@ public class INDAGame extends ApplicationAdapter {
 
 	@Override
 	public void render() {
-		handleInputs();
+		HandleInputs();
+		HandleInputsP2(); // Temp local multiplayer 
+		
 		// Update statetime and physics
 		stateTime += Gdx.graphics.getDeltaTime();
 		Update(Gdx.graphics.getDeltaTime());
@@ -752,13 +754,65 @@ public class INDAGame extends ApplicationAdapter {
 	}
 	
 	
-	private void handleInputs() {
+	private void HandleInputsP2(){
+		Player p = allPlayers.get(1);
+		if (Gdx.input.isKeyJustPressed(Input.Keys.T))
+			if(!p.Dead()){
+				DropBomb(p);
+			}
+
+		if (Gdx.input.isKeyPressed(Input.Keys.A)){
+			if(!p.Dead()){
+				p.SetState(State.Left);
+				if (Math.abs(p.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
+					p.body.applyForceToCenter(new Vector2(-MOVE_FORCE, 0),	true);
+		}
+			return;
+		}
+		if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+			if(!p.Dead()){
+				p.SetState(State.Right);
+
+				if (Math.abs(p.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
+					p.body.applyForceToCenter(new Vector2(MOVE_FORCE, 0), true);
+			}
+
+			return;
+
+		}
+
+		if (Gdx.input.isKeyPressed(Input.Keys.W)) {
+			if(!p.Dead()){
+				p.SetState(State.Up);
+				
+				if (Math.abs(p.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
+					p.body.applyForceToCenter(new Vector2(0, MOVE_FORCE), true);
+				}
+			return;
+		}
+
+		if (Gdx.input.isKeyPressed(Input.Keys.S)) {
+			if(!p.Dead()){
+				p.SetState(State.Down);
+
+				if (Math.abs(p.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
+					p.body.applyForceToCenter(new Vector2(0, -MOVE_FORCE),	true);
+			}
+			return;
+		}
+		
+		
+	}
+	
+	
+	
+	private void HandleInputs() {
 		
 
 		if (Gdx.input.isKeyPressed(Input.Keys.Q))
 			Gdx.app.exit();
 		
-		if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE))
+		if (Gdx.input.isKeyJustPressed(Input.Keys.P))
 			if(!player.Dead()){
 				DropBomb(player);
 			}
@@ -821,7 +875,7 @@ public class INDAGame extends ApplicationAdapter {
 
 		}
 		
-		if(Gdx.input.isKeyPressed(Input.Keys.T))
+		if(Gdx.input.isKeyPressed(Input.Keys.B))
 			System.out.println("Bodies in world: " + WORLD.getBodyCount());
 
 		if(Gdx.input.isKeyJustPressed(Input.Keys.U)){
