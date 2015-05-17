@@ -4,6 +4,12 @@ package com.mygdx.game;
 	import com.badlogic.gdx.graphics.Camera;
 	import com.badlogic.gdx.math.Vector2;
 
+	/**
+	 * Screen shake-effect using a Perlin noise
+	 * @author dsgraham
+	 *
+	 */
+	
 	public class Shake {
 	   float[] samples;
 	   Random rand = new Random();
