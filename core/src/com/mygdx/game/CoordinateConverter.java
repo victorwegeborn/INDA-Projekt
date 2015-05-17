@@ -9,9 +9,13 @@ import com.badlogic.gdx.math.Vector2;
 
 public final class CoordinateConverter {
 	
+	/**
+	 * Snaps current position
+	 * to nearest tile center
+	 * @param position
+	 * @return quantized position as Vector2
+	 */
 	public static Vector2 quantizePositionToGrid(Vector2 position){
-
-		//Which tile is closest? Offsets position depending on distance to tile
 
 		float xOffset = -0.5f;
 		float yOffset = -0.5f;
@@ -21,6 +25,20 @@ public final class CoordinateConverter {
 		Vector2 finalpos = new Vector2(x, y);
 		
 		return finalpos;
+	}
+	
+
+	/**
+	 * TODO: Tile-axis to world-axis conversion.
+	 * Might be necessary to invert y-axis when 
+	 * referring to tiles in world space
+	 * 
+	 * @param y
+	 * @return
+	 */
+	public static int ConvertY(int y){
+	
+	return y;
 	}
 
 

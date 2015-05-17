@@ -1,11 +1,15 @@
 package com.mygdx.game;
 
+import java.util.ArrayList;
+
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.graphics.g2d.Animation.PlayMode;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.*;
@@ -41,17 +45,21 @@ public class INDAGame extends ApplicationAdapter {
 
 	// TODO: Migrate to server!
 	public static World WORLD; // Physics world
-	private static ContactHandler contactHandler;
+	private static ContactHandler contactHandler = new ContactHandler();
 	private static WorldQuery worldQuery;
+	private static FireRayCastHandler fireRayCast = new FireRayCastHandler();
 	
 	private Player player;
-	private Player[] allplayers;
+	private static Array<Player> allPlayers = new Array<Player>();
 	
 	public static Body FRICTION; // Body used to maintain friction between players and floor
 	private static float timeStep = 1f / 60f; // Interval of physics simulation
 
 	
 	private Box2DDebugRenderer b2dr;
+	private ShapeRenderer sRend;
+	static float sWidth = 0.2f, sHeight = 0.2f;
+	static ArrayList<Square> squares = new ArrayList<Square>(); 
 
 	// Dummy game variables, move to Player-class?
 	private static final float MOVE_FORCE = 10f;
@@ -67,10 +75,15 @@ public class INDAGame extends ApplicationAdapter {
 	// The level
 	private TiledMap tileMap;
 	private BatchTiledMapRenderer batch_tiledMapRenderer;
+	private static int boxLayerIndex = 5;
 	private static int[] bottomLayers = {0 , 1, 5} ; //0: Floor, 1: Pillars, 5: Boxes
 	private static int[] topLayers = {2};			 //2: All sprites to render above everything else
 	
 	private TiledMapTileLayer boxLayer;
+	private Array<Body> boxBodies;
+	private Texture mapSprite;
+	private TextureRegion boxSprite;
+	
 	private TiledMapTileLayer wallLayer;
 	//
 
@@ -87,30 +100,128 @@ public class INDAGame extends ApplicationAdapter {
 	
 	
 	
-	// Bomb / Fire animations
-
-	
 	// Debug-variables
 	private static FPSLogger fps = new FPSLogger();
 	
 	float stateTime;
 
 	@Override
+
+	/**
+	 * Due to internal referencing,
+	 * a certain order of creation
+	 * must be retained:
+	 * Camera -> World -> Players -> Map
+	 * All other create-methods 
+	 * have non-critical placement
+	 */
 	public void create() {
-		// TODO: Migrate to server
+		
+		SetupCamera();
+		
+		SetupSpriteBatch();
+	
+		CreateWorld();
+		
+		CreatePlayers(4);
+	
+		InitializeItemPools();
+		
+		SetupMap("maps/level.tmx");
+			
+		SetupDebugRenderers();
+		
+		stateTime = 0.0f;
+		
+
+	}
+	
+	private void SetupCamera(){
+
+		// Setup screen resolution and camera position***
+		camera = new OrthographicCamera(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+		viewport = new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
+		// -------------------------------------------***
+		
+	}
+	
+	private void SetupSpriteBatch(){
+		// Setup the sprite batch
+		batch = new SpriteBatch();
+		batch.setProjectionMatrix(camera.combined); // Define where to project image
+											
+	}
+	
+	private void SetupDebugRenderers(){
+		// Initialize debug renderers
+		b2dr = new Box2DDebugRenderer();				
+		sRend = new ShapeRenderer();
+	    sRend.setProjectionMatrix(camera.combined);
+	}
+	
+	/**
+	 * Creates all players on current map.
+	 * Each player is joined to the friction floor
+	 * for accurate physics calculation
+	 */
+	private void CreatePlayers(int numberOfPlayers){
+		
+		if(numberOfPlayers < 1)
+			numberOfPlayers = 1;
+		
+		if(numberOfPlayers > 4)
+			numberOfPlayers = 4;
+		
+		// Join players to friction floor----***
+		FrictionJointDef def = new FrictionJointDef();
+		def.bodyA = FRICTION;
+ 		def.maxForce = 2f;// set something sensible;
+		def.maxTorque = 2f;// set something sensible;
+		FrictionJoint joint;
+		// ----------------------------------***
+		
+		Vector2 spawnPos;
+		
+		for(int i = 0; i < numberOfPlayers; i++){
+			
+			//Set spawn position for players 1 - 4
+			switch(i){
+			case 0:
+				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(3, 1));
+				break;
+			case 1:
+				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(3, 8));
+				break;
+			case 2:
+				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(16, 1));
+				break;
+			case 3:
+				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(16, 8));
+				break;
+			default:
+				spawnPos = new Vector2(3,2);
+			}
+			
+			
+			allPlayers.add(new Player(true, spawnPos));
+			def.bodyB = allPlayers.get(i).body;
+			joint = (FrictionJoint) WORLD.createJoint(def);
+		}
+		
+		player = allPlayers.get(0);  
+		
+	}
+	
+	private void CreateWorld(){
 		/*
 		 * The input vector defines gravitational pull on the x- and y-axis of
 		 * the world. 0, 0 = no gravity in either direction. The boolean value
 		 * removes inactive bodies from physics calculation, be sure to leave as true
 		 */
 		WORLD = new World(new Vector2(0, 0), true);
-		contactHandler = new ContactHandler();
 		WORLD.setContactListener(contactHandler);
 		worldQuery = new WorldQuery();
-
-		// Create players---------------------***
-				player = new Player(true, new Vector2(3, 2));
-
+		
 		
 		// Create the world friction floor----***
 		BodyDef bdef = new BodyDef();
@@ -133,43 +244,38 @@ public class INDAGame extends ApplicationAdapter {
 				VIRTUAL_HEIGHT / 2f), 0);
 		shape.dispose();
 		// ----------------------------------***
-
 		
-
-		// Join players to friction floor----***
-		FrictionJointDef def = new FrictionJointDef();
-		def.bodyA = FRICTION;
-		def.bodyB = player.body;
-		def.maxForce = 2f;// set something sensible;
-		def.maxTorque = 2f;// set something sensible;
-		FrictionJoint joint = (FrictionJoint) WORLD.createJoint(def);
-		// ----------------------------------***
 		
+		
+	}
+	
+	
+	/**
+	 * Pools needed are for fire, bombs and items
+	 * All other objects in the game world have a
+	 * static upper count
+	 */
+	private void InitializeItemPools(){
 		
 		// Establish item pools--------------***
 		for(int b = 0; b < bombs.length; b++)
-			bombs[b] = new Bomb(3, 1, WORLD, bombPoolPosition);
+			bombs[b] = new Bomb(3, 2, WORLD, bombPoolPosition);
 		
 		for (int f = 0; f < fires.length; f++)
 			fires[f] = new Fire(WORLD, firePoolPosition);
 		//-----------------------------------***
 		
+	}
+	
+	/**
+	 * Creates a new random map using the specified level
+	 * in .tmx format.
+	 */
+
+	private void SetupMap(String map){
 		
-
-		b2dr = new Box2DDebugRenderer();
-
-		// Setup screen resolution and camera position***
-		camera = new OrthographicCamera(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
-		viewport = new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
-		// -------------------------------------------***
-
-		// Setup the sprite batch
-		batch = new SpriteBatch();
-		batch.setProjectionMatrix(camera.combined); // Define where to project image
-													
-
 		// Map loading and rendering*******************
-		tileMap = new TmxMapLoader().load(Gdx.files.internal("maps/level.tmx")
+		tileMap = new TmxMapLoader().load(Gdx.files.internal(map)
 				.path());
 		batch_tiledMapRenderer = new OrthogonalTiledMapRenderer(tileMap, 1 / 32f);
 		TiledMapTileLayer layer0 = (TiledMapTileLayer) tileMap.getLayers().get(
@@ -179,22 +285,26 @@ public class INDAGame extends ApplicationAdapter {
 				/ (2 * 32f), 0);
 
 		
+
 		MapBodyBuilder.buildShapes(tileMap, B2DVars.PPM, WORLD, B2DVars.BIT_WALL, "wall");  //Build walls
+		MapRandomizer mapRand = new MapRandomizer();
 		
-		boxLayer = MapRandomizer.fillMap(WORLD, tileMap, 50); //Construct random boxes
+		boxLayer = mapRand.fillMap(WORLD, tileMap, 50); //Construct random boxes
+		boxLayer.setVisible(false);
 		tileMap.getLayers().add(boxLayer);
+		boxBodies = mapRand.boxBodies;
+		mapSprite = mapRand.mapSprite;
+		boxSprite = mapRand.boxSprite;
+		
 		
 		wallLayer = (TiledMapTileLayer)tileMap.getLayers().get("Pillars");
 		// --------------------------*******************
 
 		camera.position.set(center);
 		camera.update();
-
-		stateTime = 0.0f;
 		
-
 	}
-
+	
 	public void update(float dt) {
 		WORLD.step(dt, 1, 1); 
 	}
@@ -224,39 +334,68 @@ public class INDAGame extends ApplicationAdapter {
 		batch_tiledMapRenderer.render(bottomLayers);
 		
 
-		//Batch BEGIN-----------------------------------***
+		//Batch BEGIN, order of rendering decides displayed layering----***
 		batch.begin();
 	
 		RenderBombs();
 		
+		RenderBoxes();
+		
 		RenderPlayers();
 		
 		RenderFire();
-
 		
 		batch.end();
-		//Batch END----------------------------------------***
+		//Batch END-----------------------------------------------------***
 		
 
 		
 		batch_tiledMapRenderer.render(topLayers);
 		
-		//Debug-tools:
-	//	b2dr.render(WORLD, camera.combined);
+
+		
+		//Debug-tools, uncomment for visual aid / bug-hunting:
+		//b2dr.render(WORLD, camera.combined);
+		//RenderSquares();
 		//PrintAllContacts();
-		//	fps.log();
+		//fps.log();
 
 
 	}
 	
 	
+	private void RenderSquares(){
+		sRend.setProjectionMatrix(camera.combined);
+		sRend.updateMatrices();
+		camera.update();
+		sRend.begin(ShapeType.Line);
+		for(Square s : squares){
+			sRend.rect(s.x, s.y, sWidth, sHeight, s.color, s.color, s.color, s.color);
+			s.update();
+		}
+		sRend.end();
+	}
 	
-	
+	private void RenderBoxes(){
+		Vector2 origin = new Vector2(0,0);
+		for(Body b : boxBodies){
+			if(b.isActive())
+				batch.draw(boxSprite, b.getPosition().x, b.getPosition().y, 1, 1);
+			
+		}
+	}
 
+	/**
+	 * Renders all players that are not dead
+	 */
 	private void RenderPlayers(){
-		batch.draw(player.Animation().getKeyFrame(stateTime, true),
-			player.body.getPosition().x - 0.5f,
-			player.body.getPosition().y - 0.3f, 1, 1);
+		for(Player p : allPlayers){
+		if(!p.Dead()){
+			batch.draw(p.Animation().getKeyFrame(stateTime, true),
+					p.body.getPosition().x - 0.5f,
+					p.body.getPosition().y - 0.3f, 1, 1);
+			}
+		}
 	}
 	
 	
@@ -302,12 +441,17 @@ public class INDAGame extends ApplicationAdapter {
 	 * render fire at bombs position in proportion
 	 * to the bombs specified firepower
 	 */
+	
 	private void DetonateBomb(Bomb b){
 	
 				int firePower = b.getFirePower();
 				
 				float x = b.detonatePosition.x;
 				float y = b.detonatePosition.y;
+				float offset = 0.5f;
+				float rayx = x + offset;
+				float rayy = y + offset;
+				DrawSquare(rayx, rayy, Color.WHITE);
 								
 				SetFire(x, y);
 
@@ -315,38 +459,86 @@ public class INDAGame extends ApplicationAdapter {
 					System.out.println("position x: " + x + " y:" + y);
 				}
 				
-				Fire fire = null;
+				Fire fireL = null;
+				Fire fireR = null;
+				Fire fireU = null;
+				Fire fireD = null;
 				
 				boolean obstacleHitLeft = false;
 				boolean obstacleHitRight = false;
 				boolean obstacleHitUp = false;
 				boolean obstacleHitDown = false;
-				
-				//Place fire in adjacent tiles and set the correct
-				//animation state for each fire.
+				FireRayCastHandler fRay = new FireRayCastHandler();
+
+				/**
+				 * For each tile in each direction, a short raycast is
+				 * done to check if the next tile holds a box or a wall.
+				 * Note that player  and item collision is handled
+				 * dynamically in the ContactHandler.
+				 */
 				for(int f = 1; f <= firePower; f++)
 					{	
-						//TODO: Implement obstacle check
 					
-						if(!obstacleHitUp){
-							fire = SetFire(x, y + f);
-							fire.state = f == firePower ? Fire.State.Up : Fire.State.Vertical;
-						}
+							if(!obstacleHitUp){
+								WORLD.rayCast(fRay, new Vector2(rayx, rayy + f - 1), new Vector2(rayx, rayy + f));
+								obstacleHitUp = fRay.hasCollided && Math.abs(fRay.hitPoint.y - (rayy + f - 1)) < 1;
+								DrawSquare(rayx, rayy + f, Color.WHITE);
+
+								
+								if(!obstacleHitUp){
+									fireU = SetFire(x, y + f);
+									fireU.state = f == firePower ? Fire.State.Up : Fire.State.Vertical;
+								}
+							}
 						
-						if(!obstacleHitDown){
-							fire = SetFire(x, y - f);
-							fire.state = f == firePower ? Fire.State.Down : Fire.State.Vertical;
-						}
-						
-						if(!obstacleHitRight){
-							fire = SetFire(x + f, y);
-							fire.state = f == firePower ? Fire.State.Right : Fire.State.Horizontal;
-						}
-						
-						if(!obstacleHitLeft){
-							fire = SetFire(x - f, y);
-							fire.state = f == firePower ? Fire.State.Left : Fire.State.Horizontal;
-						}
+							if(!obstacleHitDown){
+								fRay.ResetCollisionCheck();
+								WORLD.rayCast(fRay, new Vector2(rayx, rayy - f + 1), new Vector2(rayx, rayy - f));
+								
+								if(fRay.hitPoint != null)
+									obstacleHitDown = fRay.hasCollided && Math.abs(fRay.hitPoint.y - (rayy - f + 1)) < 1;
+								
+								DrawSquare(rayx, rayy - f, Color.WHITE);
+								
+							
+								if(!obstacleHitDown){
+									fireD = SetFire(x, y - f);
+									fireD.state = f == firePower ? Fire.State.Down : Fire.State.Vertical;
+								}
+							}
+							
+							if(!obstacleHitRight){
+								fRay.ResetCollisionCheck();
+								WORLD.rayCast(fRay, new Vector2(rayx + f - 1, rayy), new Vector2(rayx + f, rayy));
+								
+								if(fRay.hitPoint != null)
+									obstacleHitRight = fRay.hasCollided && Math.abs(fRay.hitPoint.x - (rayx + f - 1)) < 1;
+								
+								DrawSquare(rayx + f, rayy, Color.WHITE);
+
+							
+								if(!obstacleHitRight){
+									fireR = SetFire(x + f, y);
+									fireR.state = f == firePower ? Fire.State.Right : Fire.State.Horizontal;
+								}
+							}	
+							
+							if(!obstacleHitLeft){
+								fRay.ResetCollisionCheck();
+								WORLD.rayCast(fRay, new Vector2(rayx - f + 1, rayy), new Vector2(rayx - f, rayy));
+								
+								if(fRay.hitPoint != null)
+									obstacleHitLeft = fRay.hasCollided && Math.abs(fRay.hitPoint.x - (rayx - f + 1)) < 1;
+								
+								DrawSquare(rayx - f, rayy, Color.WHITE);
+
+							
+								if(!obstacleHitLeft){	
+									fireL = SetFire(x - f, y);
+									fireL.state = f == firePower ? Fire.State.Left : Fire.State.Horizontal;
+								}
+							}
+							
 					}
 				
 				b.detonate = false;
@@ -356,6 +548,16 @@ public class INDAGame extends ApplicationAdapter {
 	
 
 	
+	private boolean isOccupied(float x, float y){
+		//TODO: Implement occupation check
+		return false;
+	}
+	
+	
+	//Useful for debugging world checks
+	public static void DrawSquare(float x, float y, Color color){
+		squares.add(new Square(x, y, color));	
+	}
 	
 	
 	/**
@@ -392,7 +594,7 @@ public class INDAGame extends ApplicationAdapter {
 	 * nearest tile center)
 	 */
 	
-	private void DropBomb(){
+	private void DropBomb(Player p){
 		
 		for(Bomb b : bombs){
 			if(!b.active){
@@ -402,7 +604,7 @@ public class INDAGame extends ApplicationAdapter {
 				b.state = Bomb.State.Ticking;
 		
 				//Quantize player position to nearest tile center and place bomb there
-				Vector2 bombPosition = CoordinateConverter.quantizePositionToGrid(player.body.getPosition());
+				Vector2 bombPosition = CoordinateConverter.quantizePositionToGrid(p.body.getPosition());
 				b.body.setTransform(bombPosition, 0);
 		
 				break;
@@ -419,44 +621,47 @@ public class INDAGame extends ApplicationAdapter {
 			Gdx.app.exit();
 		
 		if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE))
-			DropBomb();
+			if(!player.Dead()){
+				DropBomb(player);
+			}
 
 		if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-			player.SetState(State.Left);
-			if (Math.abs(player.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
-				player.body.applyForceToCenter(new Vector2(-MOVE_FORCE, 0),
-						true);
-
+			if(!player.Dead()){
+				player.SetState(State.Left);
+				if (Math.abs(player.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
+					player.body.applyForceToCenter(new Vector2(-MOVE_FORCE, 0),	true);
+		}
 			return;
 		}
 		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-			player.SetState(State.Right);
+			if(!player.Dead()){
+				player.SetState(State.Right);
 
-			if (Math.abs(player.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
-				player.body
-						.applyForceToCenter(new Vector2(MOVE_FORCE, 0), true);
+				if (Math.abs(player.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
+					player.body.applyForceToCenter(new Vector2(MOVE_FORCE, 0), true);
+			}
 
 			return;
 
 		}
 
 		if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-			player.SetState(State.Up);
-
-			if (Math.abs(player.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
-				player.body
-						.applyForceToCenter(new Vector2(0, MOVE_FORCE), true);
-
+			if(!player.Dead()){
+				player.SetState(State.Up);
+				
+				if (Math.abs(player.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
+					player.body.applyForceToCenter(new Vector2(0, MOVE_FORCE), true);
+				}
 			return;
 		}
 
 		if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-			player.SetState(State.Down);
+			if(!player.Dead()){
+				player.SetState(State.Down);
 
-			if (Math.abs(player.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
-				player.body.applyForceToCenter(new Vector2(0, -MOVE_FORCE),
-						true);
-
+				if (Math.abs(player.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
+					player.body.applyForceToCenter(new Vector2(0, -MOVE_FORCE),	true);
+			}
 			return;
 		}
 		
@@ -524,6 +729,9 @@ public class INDAGame extends ApplicationAdapter {
 			for(Fire f : fires)
 				System.out.println(f.active);
 		}
+		
+		if(Gdx.input.isKeyJustPressed(Input.Keys.L))
+			DrawSquare(player.body.getPosition().x, player.body.getPosition().y, Color.BLUE);
 	}
 		
 		private void PrintAllContacts(){

@@ -25,9 +25,17 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 
 public class MapBodyBuilder {
+	
+	/**
+	 * This creates rigid bodies from specified tiles
+	 * in a tilemap. Note that only rectangle objects
+	 * are currently supported.
+	 */
 
     // The pixels per tile. If your tiles are 16x16, this is set to 16f
     private static float ppt = 0;
+    private static float posX;
+    private static float posY;
     
     public static Array<Body> buildShapesFromLayer(MapLayer mapLayer, float pixels, World world, short collisionLayer, String description){
     	Map map = new Map();
@@ -42,7 +50,7 @@ public class MapBodyBuilder {
         MapObjects objects = map.getLayers().get("Colliders").getObjects();
 
         Array<Body> bodies = new Array<Body>();
-
+        
         for(MapObject object : objects) {
 
             if (object instanceof TextureMapObject) {
@@ -50,6 +58,7 @@ public class MapBodyBuilder {
             }
 
             Shape shape;
+          
 
             if (object instanceof RectangleMapObject) {
             	//System.out.println("Rectangle found");
@@ -71,33 +80,42 @@ public class MapBodyBuilder {
                 continue;
             }
             
+        	posX = object.getProperties().get("x", Float.class) / ppt;
+        	posY = object.getProperties().get("y", Float.class) / ppt;
+            
             //Create body and define fixture for this tile
             BodyDef bdef = new BodyDef();
-            bdef.type = BodyType.StaticBody;
+            bdef.type = BodyType.KinematicBody;
+            bdef.allowSleep = false;      
+          	bdef.position.set(posX, posY);
+            
             FixtureDef fdef = new FixtureDef();
             fdef.filter.categoryBits = collisionLayer;
         	fdef.filter.maskBits = B2DVars.BIT_PLAYER | B2DVars.BIT_FIRE;
         	fdef.shape = shape;
             Body body = world.createBody(bdef);
-            body.createFixture(fdef).setUserData(description);
+            Fixture f = body.createFixture(fdef);
+            f.setUserData(description);
             body.setUserData(description);
 
             bodies.add(body);
 
             shape.dispose();
         }
+        
         return bodies;
     }
 
     private static PolygonShape getRectangle(RectangleMapObject rectangleObject) {
         Rectangle rectangle = rectangleObject.getRectangle();
         PolygonShape polygon = new PolygonShape();
-        Vector2 size = new Vector2((rectangle.x + rectangle.width * 0.5f) / ppt,
-                                   (rectangle.y + rectangle.height * 0.5f ) / ppt);
+        Vector2 size = new Vector2((rectangle.width * 0.5f) / ppt,
+                                   (rectangle.height * 0.5f ) / ppt);
         polygon.setAsBox(rectangle.width * 0.5f / ppt,
                          rectangle.height * 0.5f / ppt,
                          size,
                          0.0f);
+
         return polygon;
     }
 
@@ -137,5 +155,12 @@ public class MapBodyBuilder {
         ChainShape chain = new ChainShape(); 
         chain.createChain(worldVertices);
         return chain;
+    }
+    
+    //Prints all placed bodies positions in world space. 
+    private static void PrintBodyPositions(Array<Body> bodies){
+    	for(Body b : bodies){
+    		System.out.println(b.getPosition());
+    	}
     }
 }

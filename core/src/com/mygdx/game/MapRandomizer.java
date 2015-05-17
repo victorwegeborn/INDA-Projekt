@@ -2,6 +2,9 @@ package com.mygdx.game;
 
 import java.util.Random;
 
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.MapLayer;
 import com.badlogic.gdx.maps.MapLayers;
 import com.badlogic.gdx.maps.MapObject;
@@ -10,10 +13,16 @@ import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell;
+import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.utils.Array;
 
-public final class MapRandomizer {
-
+public class MapRandomizer {
+	
+	public Array<Body> boxBodies;
+	public Texture mapSprite;
+	public TextureRegion boxSprite;
+	
 	/**
 	 * Constructs a layer of randomly placed boxes
 	 * on the specified map and creates corresponding bodies 
@@ -24,7 +33,7 @@ public final class MapRandomizer {
 	 * @return a TiledMapTileLayer of randomly placed boxes
 	 */
 	
-	public static TiledMapTileLayer fillMap(World world, TiledMap map, int density){
+	public TiledMapTileLayer fillMap(World world, TiledMap map, int density){
 	
 	Random random = new Random();
 	int boxesToPlace = density;	
@@ -38,6 +47,8 @@ public final class MapRandomizer {
 
 	TiledMapTileLayer boxReferenceLayer = (TiledMapTileLayer) map.getLayers().get("Boxes");
 	Cell box = boxReferenceLayer.getCell(0, 0);
+	mapSprite = box.getTile().getTextureRegion().getTexture();
+	boxSprite = box.getTile().getTextureRegion();
 
 	
 	//Grab the needed tile layers from the map***
@@ -72,6 +83,9 @@ public final class MapRandomizer {
 	placeTile[2][4] = true;  //Keep left players separated
 	
 	placeTile[16][4] = true; //Keep right players separated
+	
+	//TODO: Implement barriers between horizontally adjacent players
+	
 	//----------------------------------------------***
 	
 	
@@ -92,8 +106,12 @@ public final class MapRandomizer {
 			
 			//If placeTile is true, this tile is a required tile and will spawn
 			if(placeTile[w][h] || random.nextInt(32) > 10 && boxesToPlace > 0){
-				MapObject m = new RectangleMapObject(w*32f, h*32f, 32f, 32f);
+				float x = w*32f;
+				float y = h*32f;
+				MapObject m = new RectangleMapObject(x, y, 32f, 32f);
 				boxColliders.getObjects().add(m);
+				m.getProperties().put("x", x); //Store coordinates in collider
+				m.getProperties().put("y", y); 
 				
 				boxLayer.setCell(w, h, box); //Sets the box at this position
 				boxesToPlace--;
@@ -102,7 +120,7 @@ public final class MapRandomizer {
 		}
 	}
 	
-	MapBodyBuilder.buildShapesFromLayer(boxColliders, 32f, world, B2DVars.BIT_BOX, "box");
+	boxBodies = MapBodyBuilder.buildShapesFromLayer(boxColliders, 32f, world, B2DVars.BIT_BOX, "box");
 	return boxLayer;
 	}
 }

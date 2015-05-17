@@ -1,4 +1,4 @@
-	package com.mygdx.game;
+package com.mygdx.game;
 import static com.mygdx.game.B2DVars.PPM;
 import static com.mygdx.game.INDAGame.WORLD;
 
@@ -36,6 +36,7 @@ private int droppedBombs;
 private int fireLength;
 private int speedCount;
 
+private boolean killed;
 
 /*
  * Creates a new player.
@@ -50,11 +51,13 @@ public Player(boolean player1, Vector2 position){
 	bombCount = 1;
 	fireLength = 1;
 	speedCount = 1;
+	killed = false;
 	
 	//Create player body
 	BodyDef bdef = new BodyDef();
 	bdef.position.set(spawnPosition);
 	bdef.type = BodyType.DynamicBody;
+	bdef.allowSleep = false;
 	
 	FixtureDef fdef = new FixtureDef();
 	
@@ -66,6 +69,7 @@ public Player(boolean player1, Vector2 position){
 	fdef.filter.maskBits = B2DVars.BIT_BOX | B2DVars.BIT_WALL | B2DVars.BIT_ITEM | B2DVars.BIT_FIRE;
 	//-----------------*
 	body = WORLD.createBody(bdef);
+	body.setUserData(this); // Store reference to player object in user data for external referencing
 	body.createFixture(fdef).setUserData("player");
 	shape.dispose();
 
@@ -145,13 +149,19 @@ public Player(boolean player1, Vector2 position){
 	
 	public void DropBomb(){
 		
+		//TODO: Implement bomb count check and keeping track of placed bombs
 		if(droppedBombs > bombCount)
 						return;
 		
-		
-		
 	}
 	
+	public void Kill(){
+		killed = true;
+	}
+	
+	public boolean Dead(){
+		return killed;
+	}
 
 
 }

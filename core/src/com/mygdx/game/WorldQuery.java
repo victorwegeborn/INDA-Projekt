@@ -10,6 +10,7 @@ public class WorldQuery implements QueryCallback{
 	@Override
 	public boolean reportFixture(Fixture fixture) {
 		String s = (String)fixture.getUserData();
+		System.out.println(s);
 		if(s == "box" || s == "wall")
 				occupied = true;
 		

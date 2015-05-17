@@ -18,30 +18,43 @@ public class ContactHandler implements ContactListener {
 
 	@Override
 	public void beginContact(Contact c) {
-		Fixture fa = c.getFixtureA(); 
-		Fixture fb = c.getFixtureB();
-		System.out.println("COLLISION");
-		System.out.println(fa + " " + " " + fb);
+		//System.out.println("COLLISION DETECTED");
+		Fixture a = c.getFixtureA();
+		Fixture b = c.getFixtureB();
+		short aCategory = c.getFixtureA().getFilterData().categoryBits; 
+		short bCategory = c.getFixtureB().getFilterData().categoryBits;
 		
-		//Use f.getUserData() to identify the fixtures.
-		//Note that order of fixtures vary
-		
-		if(fa.getUserData() != null && fa.getUserData().equals("player")){
-			//DO STUFF
+		if(aCategory == B2DVars.BIT_FIRE || bCategory == B2DVars.BIT_FIRE){
+			if(aCategory == B2DVars.BIT_FIRE)
+				HandleFire(a, b);		
+			else
+				HandleFire(b, a);
 		}
 		
-		if(fb.getUserData() != null && fb.getUserData().equals("player")){
-			//DO STUFF
-		}
 	}
 
+	
+	private void HandleFire(Fixture fire, Fixture other){
+		//System.out.println(other.getFilterData().categoryBits);
+		short otherCategory = other.getFilterData().categoryBits;
+	
+		
+		// Box collision handled via raycasting. Walls not affected by fire.
+		if(otherCategory == B2DVars.BIT_BOX || otherCategory == B2DVars.BIT_WALL)
+			return;
+		
+	
+		if(otherCategory == B2DVars.BIT_PLAYER){
+			Player p = (Player)other.getBody().getUserData();
+			p.Kill();
+		}
+		
+	}
+	
 	@Override
  	public void endContact(Contact c) {	
  		Fixture fa = c.getFixtureA(); 
 		Fixture fb = c.getFixtureB();
-		System.out.println("END COLLISION");
-		System.out.println(fa + " " + " " + fb);
-		
 		
 		if(fa.getUserData() != null && fa.getUserData().equals("player")){
 			//DO STUFF

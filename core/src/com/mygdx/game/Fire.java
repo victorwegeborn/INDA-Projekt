@@ -38,8 +38,9 @@ public class Fire {
 		this.poolPosition = poolPosition;
 		BodyDef bdef = new BodyDef();
 		body = world.createBody(bdef);
-		body.setUserData("fire");
-		body.setType(BodyType.KinematicBody); //Ignore physics calculation
+        bdef.allowSleep = false;
+		body.setUserData(this);
+		body.setType(BodyType.DynamicBody);
 		PolygonShape shape = new PolygonShape();
 		shape.setAsBox(0.3f, 0.3f);
 		FixtureDef fdef = new FixtureDef();
