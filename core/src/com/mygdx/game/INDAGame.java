@@ -55,7 +55,7 @@ public class INDAGame extends ApplicationAdapter {
 	public static Body FRICTION; // Body used to maintain friction between players and floor
 	private static float timeStep = 1f / 60f; // Interval of physics simulation
 
-	
+	//Debug-tools
 	private Box2DDebugRenderer b2dr;
 	private ShapeRenderer sRend;
 	static float sWidth = 0.2f, sHeight = 0.2f;
@@ -70,6 +70,8 @@ public class INDAGame extends ApplicationAdapter {
 	private static final int VIRTUAL_WIDTH = 16; // Width in world units, 1 unit = 1 tile
 	private Viewport viewport;
 	private OrthographicCamera camera;
+	private Vector2 cameraCenterPos;
+	private static Shake shake = new Shake(); // Shaking camera effect
 	//
 
 	// The level
@@ -89,13 +91,18 @@ public class INDAGame extends ApplicationAdapter {
 
 	
 	// Items
-	private static int pooledBombs = 40;
+	private static int pooledBombs = 60;
 	private static Vector2 bombPoolPosition = new Vector2(-100, -100);
 	private static Bomb[] bombs = new Bomb[pooledBombs];
 	
-	private static int pooledFire = 40;
+	private static int pooledFire = 100; 
 	private static Vector2 firePoolPosition = new Vector2(-200, -200);
 	private static Fire[] fires = new Fire[pooledFire];
+	
+	private static int pooledPowerUps = 40; 
+	private static Vector2 powPoolPosition = new Vector2(200, 200);
+	private static BombPowerUp[] bombPows = new BombPowerUp[pooledPowerUps];
+	private static FirePowerUp[] firePows = new FirePowerUp[pooledPowerUps];
 	//
 	
 	
@@ -260,10 +267,16 @@ public class INDAGame extends ApplicationAdapter {
 		
 		// Establish item pools--------------***
 		for(int b = 0; b < bombs.length; b++)
-			bombs[b] = new Bomb(3, 2, WORLD, bombPoolPosition);
+			bombs[b] = new Bomb(1, B2DVars.BOMB_TIME, WORLD, bombPoolPosition);
 		
 		for (int f = 0; f < fires.length; f++)
 			fires[f] = new Fire(WORLD, firePoolPosition);
+		
+		for(int b = 0; b < bombPows.length; b++)
+			bombPows[b] = new BombPowerUp(WORLD, powPoolPosition);
+		
+		for(int f = 0; f < firePows.length; f++)
+			firePows[f] = new FirePowerUp(WORLD, powPoolPosition);
 		//-----------------------------------***
 		
 	}
@@ -276,14 +289,19 @@ public class INDAGame extends ApplicationAdapter {
 	private void SetupMap(String map){
 		
 		// Map loading and rendering*******************
-		tileMap = new TmxMapLoader().load(Gdx.files.internal(map)
-				.path());
+		tileMap = new TmxMapLoader().load(Gdx.files.internal(map).path());
+		
 		batch_tiledMapRenderer = new OrthogonalTiledMapRenderer(tileMap, 1 / 32f);
-		TiledMapTileLayer layer0 = (TiledMapTileLayer) tileMap.getLayers().get(
-				0);
+		
+		TiledMapTileLayer layer0 = (TiledMapTileLayer) tileMap.getLayers().get(0);
+		
+		
+		
 		Vector3 center = new Vector3(layer0.getWidth() * layer0.getTileWidth()
 				/ (2 * 32f), layer0.getHeight() * layer0.getTileHeight()
 				/ (2 * 32f), 0);
+		
+		cameraCenterPos = new Vector2(center.x, center.y);
 
 		
 
@@ -308,7 +326,12 @@ public class INDAGame extends ApplicationAdapter {
 	
 	public void Update(float dt) {
 		WORLD.step(timeStep, 1, 1); // Note that step is called with a fixed timestep
+		
 		UpdateGameObjects(dt);
+		
+		if(B2DVars.SCREEN_SHAKE)
+			shake.update(dt, camera, cameraCenterPos);
+
 	}
 	
 
@@ -322,7 +345,7 @@ public class INDAGame extends ApplicationAdapter {
 
 		
 		// Clear screen
-		Gdx.gl.glClearColor(1, 1, 1, 1);
+		Gdx.gl.glClearColor(0, 0, 0, 0);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 		camera.update();
@@ -341,6 +364,8 @@ public class INDAGame extends ApplicationAdapter {
 		RenderBombs();
 		
 		RenderBoxes();
+		
+		RenderItems();
 		
 		RenderPlayers();
 		
@@ -383,6 +408,15 @@ public class INDAGame extends ApplicationAdapter {
 			if(f.active)
 				f.Update(dt);
 		}
+		
+		for(FirePowerUp f : firePows)
+				f.Update(dt);
+	
+		
+		for(BombPowerUp b : bombPows)
+				b.Update(dt);
+		
+		
 	}
 	
 	private void RenderSquares(){
@@ -423,10 +457,11 @@ public class INDAGame extends ApplicationAdapter {
 	/**
 	 * Check for active bombs and render at their position
 	 */
+	
 	private void RenderBombs(){
 		for(Bomb b : bombs){
 			if(b.active && !b.detonate){
-				batch.draw(b.Animation().getKeyFrame(stateTime, true), b.body.getPosition().x,
+				batch.draw(b.Animation(), b.body.getPosition().x,
 				b.body.getPosition().y, 1, 1);
 			}
 			
@@ -443,14 +478,82 @@ public class INDAGame extends ApplicationAdapter {
 	 */
 	
 	private void RenderFire(){
-		
+		float x;
+		float y;
 		for (Fire f : fires){	
 			if(f.active){
-				float x = f.body.getPosition().x - 0.5f; //Align animation with body
-				float y = f.body.getPosition().y - 0.5f; //Align animation with body
+				x = f.body.getPosition().x - 0.5f; //Align animation with body
+				y = f.body.getPosition().y - 0.5f; //Align animation with body
 				batch.draw(f.Animation().getKeyFrame(f.animTimer), x, y, 1, 1);
 			}
 		}
+	}
+	
+	private void RenderItems(){
+		float x;
+		float y;
+		
+		for(FirePowerUp f : firePows){
+			if(f.active){
+				x = f.body.getPosition().x;
+				y = f.body.getPosition().y;
+				batch.draw(f.Animation(), x, y, 1, 1);
+			}
+		}
+			
+		for(BombPowerUp b : bombPows){
+			if(b.active){
+				x = b.body.getPosition().x;
+				y = b.body.getPosition().y;
+				batch.draw(b.Animation(), x, y, 1, 1);
+			}
+		}		
+		
+	}
+	
+	/**
+	 * Place the specified power up at the specified position
+	 * @param type 
+	 * @param position
+	 */
+	
+	public static void PlacePowerUp(int type, Vector2 position){
+		
+		switch(type){
+		
+		case B2DVars.BOMB_POWERUP:
+			
+			BombPowerUp bombPow;
+			
+			for(BombPowerUp b : bombPows){
+				if(!b.active){
+					bombPow = b;
+					bombPow.body.setTransform(position, 0);
+					bombPow.active = true;
+					break;
+				}		
+			}
+			
+				break;
+				
+		case B2DVars.FIRE_POWERUP:
+			
+			FirePowerUp firePow;
+			
+			for(FirePowerUp f : firePows){
+				if(!f.active){
+					firePow = f;
+					firePow.body.setTransform(position, 0);
+					firePow.active = true;
+					break;
+				}		
+			}
+				break;
+			
+		default:
+			break;
+			
+		}	
 	}
 	
 	
@@ -558,7 +661,7 @@ public class INDAGame extends ApplicationAdapter {
 							}
 							
 					}
-				
+				shake.shake(1);
 				b.detonate = false;
 			
 		}
@@ -617,22 +720,30 @@ public class INDAGame extends ApplicationAdapter {
 		if(!player.CanDropBomb())
 			return;
 		
+		BombQuery bombQuery = new BombQuery();
 		int firePower = player.GetFirePower();
+		Vector2 bombPosition = CoordinateConverter.quantizePositionToGrid(player.body.getPosition());
+		WORLD.QueryAABB(bombQuery, bombPosition.x - 0.2f, bombPosition.y - 0.2f, bombPosition.x + 0.2f, bombPosition.y + 0.2f);
+		
+		if(bombQuery.tileHasBomb){
+			System.out.println("Tile has bomb already.");
+			return;
+		}
 		
 		for(Bomb bomb : bombs){
 			if(!bomb.active){
+				
 				
 				//Flag bomb as active, set state to Ticking, and set firepower to players current firepower
 				bomb.active = true;
 				bomb.state = Bomb.State.Ticking;
 				bomb.SetFirePower(firePower); 
-		
+				player.body.getPosition();
 				//Quantize player position to nearest tile center and place bomb there
-				Vector2 bombPosition = CoordinateConverter.quantizePositionToGrid(player.body.getPosition());
 				bomb.body.setTransform(bombPosition, 0);
 				
 				player.RegisterDroppedBomb(bomb);
-				break;
+				return;
 			}
 			
 		}

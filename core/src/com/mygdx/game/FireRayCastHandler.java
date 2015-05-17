@@ -1,5 +1,7 @@
 package com.mygdx.game;
 
+import java.util.Random;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Fixture;
@@ -25,9 +27,23 @@ public class FireRayCastHandler implements RayCastCallback {
 		//Fire should _only_ raycast for walls (4) and boxes (8). (Items / players handled in ContactHandler)
 		hasCollided = fixtureCategory == 4 || fixtureCategory == 8;
 		
-		//TODO: IF fixture is box -> destroy box. Set box user data to the cell of that box?
-		if(fixtureCategory == B2DVars.BIT_BOX)
+		//If fixture is box -> destroy box. 40% chance of random item spawn
+		if(fixtureCategory == B2DVars.BIT_BOX){
 			DestroyBox(fixture);
+			
+			//Spawn random item if i < 40
+			Random r = new Random();
+			int i = r.nextInt(100);
+			if(i < B2DVars.DROP_RATE){
+					if(i < B2DVars.DROP_RATE / 2){
+					INDAGame.PlacePowerUp(B2DVars.BOMB_POWERUP, fixture.getBody().getPosition());
+					}
+					
+					if(i >= B2DVars.DROP_RATE / 2){
+					INDAGame.PlacePowerUp(B2DVars.FIRE_POWERUP, fixture.getBody().getPosition());
+					}
+				}
+		}
 		
 		if(fixtureCategory == B2DVars.BIT_BOMB){
 			Bomb b = (Bomb) fixture.getBody().getUserData();

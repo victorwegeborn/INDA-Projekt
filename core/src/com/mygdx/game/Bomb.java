@@ -3,6 +3,8 @@ package com.mygdx.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.Animation.PlayMode;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
@@ -16,12 +18,14 @@ public class Bomb {
 	private float timeToDetonate;
 	private float timer;
 	
+	
 	//Pool variables
 	public boolean active;
 	public boolean detonate;
 	private Vector2 poolPosition;
 	public Vector2 detonatePosition;
 
+	public Player owner;
 	
 	public Body body; //Body for easy positioning in world
 	
@@ -30,7 +34,8 @@ public class Bomb {
 	//***Animations***
 	private Animation tickingAnim;
 	private Animation blowUpAnim;
-	private static float framerate = 1/24f; 
+	private static float framerate = 1/12f; 
+	private float animTimer;
 	//
 	
 	public enum State{
@@ -44,7 +49,7 @@ public class Bomb {
 		active = false;
 		
 		this.timeToDetonate = timeToDetonate;
-		timer = timeToDetonate;
+		timer = 0;
 		
 		TextureAtlas spriteSheet = new TextureAtlas(Gdx.files.internal("sprites/items/items.txt"));
 		
@@ -66,7 +71,8 @@ public class Bomb {
 		
 		state = State.Idle;
 		this.firePower = firePower;
-		tickingAnim = new Animation(framerate, spriteSheet.findRegion("bomb"));
+		tickingAnim = new Animation(framerate, spriteSheet.findRegions("bomb"));
+		tickingAnim.setPlayMode(PlayMode.LOOP);
 	
 	}
 	
@@ -79,9 +85,9 @@ public class Bomb {
 	}
 	
 	public void Update(float dt){
-		timer -= dt;
+		timer += dt;
 		
-		if(timer <= 0){
+		if(timer >= timeToDetonate){
 			detonate = true;
 			detonatePosition = body.getPosition();
 			Reset();
@@ -101,21 +107,25 @@ public class Bomb {
 	public void Reset(){
 		//TODO: Reset to pool
 		active = false;
-		timer = timeToDetonate;
-		
+		timer = 0f;
+	
+		body.getFixtureList().first().getFilterData().maskBits = B2DVars.BIT_FIRE;
+
 		//Return to pool position in world space
 		body.setTransform(poolPosition, 0);
 	}
 
-	public Animation Animation(){		
+	//TODO: Implement more animations 
+	
+	public TextureRegion Animation(){		
 		switch(state){
-		case Idle: return tickingAnim;
+		case Idle: return tickingAnim.getKeyFrame(timer, true);
 		
-		case Ticking: return tickingAnim;
+		case Ticking: return tickingAnim.getKeyFrame(timer, true);
 		
-		case Exploding: return blowUpAnim;
+		case Exploding: return tickingAnim.getKeyFrame(timer, true);
 		
-		default: return tickingAnim;
+		default: return tickingAnim.getKeyFrame(timer, true);
 		}
 	}
 

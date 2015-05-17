@@ -44,6 +44,8 @@ private Iterator bombIterator;
 private int firePower;
 private int speedCount;
 
+public boolean immortal;
+
 private boolean killed;
 
 /*
@@ -62,9 +64,11 @@ public Player(int player, Vector2 position){
 	
 	playerNumber = player;
 	
+	immortal = true;
+	
 	Vector2 spawnPosition = CoordinateConverter.quantizePositionToGrid(position);
 	droppedBombs = 0;
-	bombCapacity = 3;
+	bombCapacity = 1;
 	firePower = 1;
 	speedCount = 1;
 	killed = false;
@@ -84,7 +88,8 @@ public Player(int player, Vector2 position){
 	fdef.shape = shape;
 	//Collision mask---* 
 	fdef.filter.categoryBits = B2DVars.BIT_PLAYER;
-	fdef.filter.maskBits = B2DVars.BIT_BOX | B2DVars.BIT_WALL | B2DVars.BIT_ITEM | B2DVars.BIT_FIRE;
+	fdef.filter.maskBits = B2DVars.BIT_BOX | B2DVars.BIT_WALL | 
+			B2DVars.BIT_ITEM | B2DVars.BIT_FIRE | B2DVars.BIT_BOMB;
 	//-----------------*
 	body = WORLD.createBody(bdef);
 	body.setUserData(this); // Store reference to player object in user data for external referencing

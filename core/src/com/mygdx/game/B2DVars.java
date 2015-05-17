@@ -20,5 +20,17 @@ public final class B2DVars {
 	public static final int MAX_SPEED = 3;
 	public static final int MAX_BOMBCAPACITY = 5;
 	
+	public static final int BOMB_POWERUP = 1;
+	public static final int FIRE_POWERUP = 2;
+	
+	
+	
+	//Game config values:
+	public static final boolean SCREEN_SHAKE = true;
+	
+	public static final float BOMB_TIME = 3f;
+	public static final int DROP_RATE = 50; //The drop rate for powerups in percent 
+
+	
 
 }
