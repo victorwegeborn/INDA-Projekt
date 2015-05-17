@@ -356,7 +356,7 @@ public class INDAGame extends ApplicationAdapter {
 
 		
 		//Debug-tools, uncomment for visual aid / bug-hunting:
-		b2dr.render(WORLD, camera.combined);
+		//b2dr.render(WORLD, camera.combined);
 		//RenderSquares();
 		//PrintAllContacts();
 		//fps.log();
