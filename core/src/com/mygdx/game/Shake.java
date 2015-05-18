@@ -18,7 +18,7 @@ package com.mygdx.game;
 	   
 	   int duration = 5; // In seconds, make longer if you want more variation
 	   int frequency = 35; // hertz
-	   float amplitude = 0.1f; // how much you want to shake
+	   float amplitude = B2DVars.SHAKE_AMPLITUDE; // how much you want to shake
 	   boolean falloff = true; // if the shake should decay as it expires 
 	   
 	   int sampleCount; 

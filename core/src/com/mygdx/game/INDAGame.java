@@ -664,7 +664,7 @@ public class INDAGame extends ApplicationAdapter {
 							
 					}
 				
-				shake.shake(0.1f * firePower); //Screen shakes proportionately to fire power
+				shake.shake(B2DVars.SHAKE_TIME * firePower); //Screen shakes proportionately to fire power
 				b.detonate = false;
 			
 		}

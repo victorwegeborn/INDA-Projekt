@@ -27,9 +27,13 @@ public final class B2DVars {
 	
 	//Game config values:
 	public static final boolean SCREEN_SHAKE = true;
+	public static final float SHAKE_TIME = 0.1f;
+	public static final float SHAKE_AMPLITUDE = 0.1f;  //Default 0.1f
+	
+
 	
 	public static final float BOMB_TIME = 3f;
-	public static final int DROP_RATE = 50; //The drop rate for powerups in percent 
+	public static final int DROP_RATE = 50; //The drop rate for powerups in percent
 
 	
 
