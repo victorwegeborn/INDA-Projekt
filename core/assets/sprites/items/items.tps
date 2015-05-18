@@ -188,7 +188,11 @@
         </struct>
         <key>fileList</key>
         <array>
-            <filename>bomb_0001.png</filename>
+            <filename>../../../../../../INDA-Projekt Assets/Sprites/bombBatch/bomb_0001.png</filename>
+            <filename>../../../../../../INDA-Projekt Assets/Sprites/bombBatch/bomb_0002.png</filename>
+            <filename>../../../../../../INDA-Projekt Assets/Sprites/bombBatch/bomb_0003.png</filename>
+            <filename>../../../../../../INDA-Projekt Assets/Sprites/bombBatch/bomb_0004.png</filename>
+            <filename>../../../../../../INDA-Projekt Assets/Sprites/bombBatch/bomb_0005.png</filename>
         </array>
         <key>ignoreFileList</key>
         <array/>

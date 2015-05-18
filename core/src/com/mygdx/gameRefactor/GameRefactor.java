@@ -1,9 +1,10 @@
-package com.mygdx.game;
+package com.mygdx.gameRefactor;
 
 import java.util.ArrayList;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
@@ -39,7 +40,7 @@ import com.badlogic.gdx.physics.box2d.joints.FrictionJoint;
 import com.badlogic.gdx.physics.box2d.joints.FrictionJointDef;
 import com.mygdx.game.Player.State;
 
-public class INDAGame extends ApplicationAdapter {
+public class GameRefactor implements Screen {
 	SpriteBatch batch;
 	Texture img;
 
@@ -111,9 +112,16 @@ public class INDAGame extends ApplicationAdapter {
 	private static FPSLogger fps = new FPSLogger();
 	
 	float stateTime;
+	
+	StartGame game;
+	
+	public GameRefactor(final StartGame game){
+		this.game = game;
+		SetupGame();
 
-	@Override
-
+	}
+	
+	
 	/**
 	 * Due to internal referencing,
 	 * a certain order of creation
@@ -122,7 +130,7 @@ public class INDAGame extends ApplicationAdapter {
 	 * All other create-methods 
 	 * have non-critical placement
 	 */
-	public void create() {
+	public void SetupGame() {
 		
 		SetupCamera();
 		
@@ -210,7 +218,7 @@ public class INDAGame extends ApplicationAdapter {
 			}
 			
 			
-			allPlayers.add(new Player(i + 1, spawnPos));
+			allPlayers.add(new Player(i + 1, spawnPos, WORLD));
 			def.bodyB = allPlayers.get(i).body;
 			joint = (FrictionJoint) WORLD.createJoint(def);
 		}
@@ -336,7 +344,7 @@ public class INDAGame extends ApplicationAdapter {
 	
 
 	@Override
-	public void render() {
+	public void render(float delta) {
 		HandleInputs();
 		HandleInputsP2(); // Temp local multiplayer 
 		
@@ -763,7 +771,7 @@ public class INDAGame extends ApplicationAdapter {
 
 		if (Gdx.input.isKeyPressed(Input.Keys.A)){
 			if(!p.Dead()){
-				p.SetState(State.Left);
+				p.SetState(Player.State.Left);
 				if (Math.abs(p.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
 					p.body.applyForceToCenter(new Vector2(-MOVE_FORCE, 0),	true);
 		}
@@ -771,7 +779,7 @@ public class INDAGame extends ApplicationAdapter {
 		}
 		if (Gdx.input.isKeyPressed(Input.Keys.D)) {
 			if(!p.Dead()){
-				p.SetState(State.Right);
+				p.SetState(Player.State.Right);
 
 				if (Math.abs(p.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
 					p.body.applyForceToCenter(new Vector2(MOVE_FORCE, 0), true);
@@ -783,7 +791,7 @@ public class INDAGame extends ApplicationAdapter {
 
 		if (Gdx.input.isKeyPressed(Input.Keys.W)) {
 			if(!p.Dead()){
-				p.SetState(State.Up);
+				p.SetState(Player.State.Up);
 				
 				if (Math.abs(p.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
 					p.body.applyForceToCenter(new Vector2(0, MOVE_FORCE), true);
@@ -793,7 +801,7 @@ public class INDAGame extends ApplicationAdapter {
 
 		if (Gdx.input.isKeyPressed(Input.Keys.S)) {
 			if(!p.Dead()){
-				p.SetState(State.Down);
+				p.SetState(Player.State.Down);
 
 				if (Math.abs(p.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
 					p.body.applyForceToCenter(new Vector2(0, -MOVE_FORCE),	true);
@@ -819,7 +827,7 @@ public class INDAGame extends ApplicationAdapter {
 
 		if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
 			if(!player.Dead()){
-				player.SetState(State.Left);
+				player.SetState(Player.State.Left);
 				if (Math.abs(player.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
 					player.body.applyForceToCenter(new Vector2(-MOVE_FORCE, 0),	true);
 		}
@@ -827,7 +835,7 @@ public class INDAGame extends ApplicationAdapter {
 		}
 		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
 			if(!player.Dead()){
-				player.SetState(State.Right);
+				player.SetState(Player.State.Right);
 
 				if (Math.abs(player.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
 					player.body.applyForceToCenter(new Vector2(MOVE_FORCE, 0), true);
@@ -839,7 +847,7 @@ public class INDAGame extends ApplicationAdapter {
 
 		if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
 			if(!player.Dead()){
-				player.SetState(State.Up);
+				player.SetState(Player.State.Up);
 				
 				if (Math.abs(player.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
 					player.body.applyForceToCenter(new Vector2(0, MOVE_FORCE), true);
@@ -849,7 +857,7 @@ public class INDAGame extends ApplicationAdapter {
 
 		if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
 			if(!player.Dead()){
-				player.SetState(State.Down);
+				player.SetState(Player.State.Down);
 
 				if (Math.abs(player.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
 					player.body.applyForceToCenter(new Vector2(0, -MOVE_FORCE),	true);
@@ -943,6 +951,43 @@ public class INDAGame extends ApplicationAdapter {
 			
 				System.out.println(a + " at position " + apos + " collides with " + b + " at position " + bpos);
 			}
+		}
+
+		@Override
+		public void show() {
+			// TODO Auto-generated method stub
+			
+		}
+
+
+		@Override
+		public void resize(int width, int height) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void pause() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void resume() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void hide() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void dispose() {
+			// TODO Auto-generated method stub
+			
 		}
 		
 			
