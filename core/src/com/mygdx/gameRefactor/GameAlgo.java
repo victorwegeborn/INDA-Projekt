@@ -6,6 +6,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
@@ -45,12 +46,15 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Listener.ThreadedListener;
+import com.esotericsoftware.kryonet.Server;
+import com.esotericsoftware.minlog.Log;
 import com.mygdx.NGame.NGame;
 import com.mygdx.NGame.NNetwork;
+import com.mygdx.NGame.NPlayer;
 import com.mygdx.NGame.NNetwork.*;
 import com.mygdx.game.Player.State;
 
-public class GameRefactor implements Screen {
+public class GameAlgo implements ApplicationListener{
 	SpriteBatch batch;
 	Texture img;
 
@@ -122,57 +126,81 @@ public class GameRefactor implements Screen {
 	private static FPSLogger fps = new FPSLogger();
 	
 	float stateTime;
-	
-	NGame game;
-	
-	
-	//========= CLIENT ==========
-	private Client client;
-	private static MovePlayer mp = new MovePlayer();
 
 	
-	//========= CLIENT END ==========
+	private Server server;
 	
-	public GameRefactor(final NGame game){
-		this.game = game;
+	@Override
+	public void create(){
 		SetupGame();
 		
-		//========= CLIENT ==========
-		client = new Client();
-		client.start();
+		server = new Server();
 		
-		//Register packets
-		NNetwork.register(client);
-		
-		// THREADED LISTENER
-		client.addListener(new ThreadedListener(new Listener() {
-			
-			public void connected (Connection c) {
+		server = new Server() {
+			protected Connection newConnection () {
+				// By providing our own connection implementation, we can store per
+				// connection state without a connection ID to state look up.
+				return new NPlayerConnection();
 			}
-			
-			public void disconnect (Connection c) {
+		};
+		
+		//Register all packages that will be sent between server and client
+		NNetwork.register(server);
 				
+		//Process all packages in the listener
+		server.addListener(new Listener() {
+					
+			public void connected (Connection c) {
+				Log.info("[SERVER] player connecting");
+			}
+
+					
+			public void disconnected (Connection c) {
+				Log.info("[SERVER] player disconnecting");
 			}
 
 			public void received (Connection c, Object o) {
-
+						
+				if(o instanceof MovePlayer) {
+							
+					switch(((MovePlayer) o).direction) {
+						case Input.Keys.A: System.out.println("[SERVER] CALCULATE TO MOVE LEFT");
+							break;
+						case Input.Keys.D: System.out.println("[SERVER] CALCULATE TO MOVE RIGHT");
+							break;
+						case Input.Keys.W: System.out.println("[SERVER] CALCULATE TO MOVE UP");
+							break;
+						case Input.Keys.S: System.out.println("[SERVER] CALCULATE TO MOVE DOWN");
+							break;
+						case Input.Keys.SPACE: System.out.println("[SERVER] DROP BOMB");
+								if(!player.Dead()){
+									DropBomb(player);
+								}
+							break;
+						}
+							
+						if(((MovePlayer) o).bomb == Input.Keys.SPACE)
+							System.out.println("PLACE BOMB");
+							
+							
+						return;
+					}
+				}
+			});
+				
+			try {
+				server.bind(54555);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		}));
-		
-		
-		try {
-			client.connect(5000, InetAddress.getLocalHost().getHostAddress(), NNetwork.PORT);
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		//========= CLIENT END ==========
-		
-		
-		
+			server.start();
 	}
+	
+	// This holds per connection state.
+		static class NPlayerConnection extends Connection {
+			public NPlayer player;
+		}
 	
 	
 	/**
@@ -201,7 +229,7 @@ public class GameRefactor implements Screen {
 		
 		stateTime = 0.0f;
 		
-
+		
 	}
 	
 	private void SetupCamera(){
@@ -397,7 +425,7 @@ public class GameRefactor implements Screen {
 	
 
 	@Override
-	public void render(float delta) {
+	public void render() {
 		//HandleInputs();
 		HandleInputsP2(); // Temp local multiplayer 
 		
@@ -881,10 +909,7 @@ public class GameRefactor implements Screen {
 			}
 		}
 		
-		if(mp.direction != mpUpdate.direction || mp.bomb != mpUpdate.bomb) {
-			client.sendTCP(mpUpdate);
-			mp = mpUpdate;
-		}
+	
 		
 	}
 	
@@ -1028,11 +1053,6 @@ public class GameRefactor implements Screen {
 			}
 		}
 
-		@Override
-		public void show() {
-			// TODO Auto-generated method stub
-			
-		}
 
 
 		@Override
@@ -1041,11 +1061,16 @@ public class GameRefactor implements Screen {
 			
 		}
 
+
+	
+
+
 		@Override
 		public void pause() {
 			// TODO Auto-generated method stub
 			
 		}
+
 
 		@Override
 		public void resume() {
@@ -1053,17 +1078,14 @@ public class GameRefactor implements Screen {
 			
 		}
 
-		@Override
-		public void hide() {
-			// TODO Auto-generated method stub
-			
-		}
 
 		@Override
 		public void dispose() {
 			// TODO Auto-generated method stub
 			
 		}
+
+
 		
 			
 	}

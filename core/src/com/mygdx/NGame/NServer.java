@@ -10,6 +10,8 @@ import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.minlog.Log;
 import com.mygdx.NGame.NNetwork.*;
+import com.mygdx.gameRefactor.GameAlgo;
+import com.mygdx.gameRefactor.GameRefactor;
 
 /**
  * NServer
@@ -22,17 +24,17 @@ public class NServer {
 	
 	private Server server;
 	
+	private boolean gameIsRunning = true;
+	
 	public int currentPlayers = 0;
+	
 	
 	// logged clients
 	private HashSet<NPlayer> players = new HashSet<NPlayer>();
 	
-	//=== GAME SPECS ===
-	private static final int MAX_CLIENTS = 4;
-	
-	
 
 	public NServer() throws IOException {
+		
 		
 		server = new Server() {
 			protected Connection newConnection () {
@@ -62,16 +64,21 @@ public class NServer {
 				
 				if(o instanceof MovePlayer) {
 					
-					int dir = ((MovePlayer) o).direction;
-					
-
-					
 					switch(((MovePlayer) o).direction) {
-					case Input.Keys.LEFT: System.out.println("[SERVER] CALCULATE TO MOVE LEFT");
+					case Input.Keys.A: System.out.println("[SERVER] CALCULATE TO MOVE LEFT");
 						break;
-					case Input.Keys.RIGHT: System.out.println("[SERVER] CALCULATE TO MOVE RIGHT");
+					case Input.Keys.D: System.out.println("[SERVER] CALCULATE TO MOVE RIGHT");
 						break;
+					case Input.Keys.W: System.out.println("[SERVER] CALCULATE TO MOVE UP");
+						break;
+					case Input.Keys.S: System.out.println("[SERVER] CALCULATE TO MOVE DOWN");
+						break;
+					case Input.Keys.SPACE: System.out.println("[SERVER] DROP BOMB");
+					break;
 					}
+					
+					if(((MovePlayer) o).bomb == Input.Keys.SPACE)
+						System.out.println("PLACE BOMB");
 					
 					
 					return;
@@ -79,8 +86,12 @@ public class NServer {
 			}
 		});
 		
-		server.bind(NNetwork.PORT);
+		server.bind(54555);
 		server.start();
+		
+	
+		
+		
 	}
 	
 	// This holds per connection state.

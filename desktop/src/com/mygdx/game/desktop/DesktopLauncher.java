@@ -16,8 +16,8 @@ public class DesktopLauncher {
 
 		//new LwjglApplication(new INDAGame(), config);
 		//new LwjglApplication(new TestGame(), config);
-		//new LwjglApplication(new NGame(), config);
-		new LwjglApplication(new StartGame(), config);
+		new LwjglApplication(new NGame(), config);
+
 
 		
 	//config.fullscreen = true;

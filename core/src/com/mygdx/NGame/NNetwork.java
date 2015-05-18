@@ -34,8 +34,7 @@ public class NNetwork {
 	
 	public static class RequestConnection {}
 	public static class AcceptConnection {}
-	public static class MovePlayer { public int direction;
-								     public int xPos;
-								     public int yPos; }
+	public static class MovePlayer { public int direction = -1;
+									 public int bomb = -1;}
 	public static class UpdatedPlayer { public NPlayer updatedPlayer; }
 }

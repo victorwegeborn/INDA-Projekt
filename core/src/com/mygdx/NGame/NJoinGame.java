@@ -23,7 +23,6 @@ public class NJoinGame implements Screen {
 	
 	private SpriteBatch batch;
 	private TextureRegion[] regions;
-	private TextField ipAdress;
 	
 	
 	private Texture buttonTexture;
@@ -121,22 +120,7 @@ public class NJoinGame implements Screen {
 		}
 	}
 	*/
-	
-	
-	public class NTextInputListener implements TextInputListener {
 
-		@Override
-		public void input(String text) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void canceled() {
-			// TODO Auto-generated method stub
-			
-		}		
-	}
 	
 	@Override
 	public void show() {

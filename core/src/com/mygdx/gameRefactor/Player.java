@@ -64,7 +64,7 @@ public Player(int player, Vector2 position, World world){
 	
 	playerNumber = player;
 	
-	immortal = false;
+	immortal = true;
 	
 	Vector2 spawnPosition = CoordinateConverter.quantizePositionToGrid(position);
 	droppedBombs = 0;

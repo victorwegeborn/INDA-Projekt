@@ -1,6 +1,7 @@
 package com.mygdx.NGame;
 
 import java.io.IOException;
+import java.net.InetAddress;
 
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
@@ -42,7 +43,7 @@ public class NClient {
 		
 		// LÄGG IN ERA EGNA LOKALA IPN HÄR
 		try {
-			client.connect(5000, ip, NNetwork.PORT);
+			client.connect(5000, InetAddress.getLocalHost().getHostAddress(), NNetwork.PORT);
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
