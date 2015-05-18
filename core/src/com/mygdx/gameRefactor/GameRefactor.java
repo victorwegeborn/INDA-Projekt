@@ -161,7 +161,7 @@ public class GameRefactor implements Screen {
 		
 		
 		try {
-			client.connect(5000, InetAddress.getLocalHost().getHostAddress(), NNetwork.PORT);
+			client.connect(5000, "10.0.1.201.", 54555);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -796,8 +796,7 @@ public class GameRefactor implements Screen {
 		
 		for(Bomb bomb : bombs){
 			if(!bomb.active){
-				
-				
+						
 				//Flag bomb as active, set state to Ticking, and set firepower to players current firepower
 				bomb.active = true;
 				bomb.state = Bomb.State.Ticking;
@@ -824,11 +823,12 @@ public class GameRefactor implements Screen {
 	
 		Player p = allPlayers.get(1);
 		
-		if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE))
+		if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){
 			mpUpdate.bomb = Input.Keys.SPACE;
 			if(!p.Dead()){
 				DropBomb(p);
 			}
+		}
 
 		if (Gdx.input.isKeyPressed(Input.Keys.A) && !changed){
 			if(!p.Dead()){

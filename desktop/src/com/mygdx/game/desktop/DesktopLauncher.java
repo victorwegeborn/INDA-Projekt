@@ -16,9 +16,15 @@ public class DesktopLauncher {
 
 		//new LwjglApplication(new INDAGame(), config);
 		//new LwjglApplication(new TestGame(), config);
+<<<<<<< Updated upstream
 		//new LwjglApplication(new NGame(), config);
 		new LwjglApplication(new GameAlgo(), config);
 
+=======
+		new LwjglApplication(new NGame(), config);
+		//new LwjglApplication(new StartGame(), config);
+		 
+>>>>>>> Stashed changes
 
 		
 	//config.fullscreen = true;
