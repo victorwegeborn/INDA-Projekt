@@ -1,6 +1,7 @@
 package com.mygdx.NGame;
 
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.physics.box2d.World;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.EndPoint;
 
@@ -37,4 +38,5 @@ public class NNetwork {
 	public static class MovePlayer { public int direction = -1;
 									 public int bomb = -1;}
 	public static class UpdatedPlayer { public NPlayer updatedPlayer; }
+	public static class WorldUpdate { public World world; }
 }

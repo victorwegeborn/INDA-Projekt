@@ -172,16 +172,16 @@ public class GameAlgo implements ApplicationListener{
 							break;
 						case Input.Keys.S: System.out.println("[SERVER] CALCULATE TO MOVE DOWN");
 							break;
-						case Input.Keys.SPACE: System.out.println("[SERVER] DROP BOMB");
-								if(!player.Dead()){
-									DropBomb(player);
-								}
-							break;
+
 						}
 							
 						if(((MovePlayer) o).bomb == Input.Keys.SPACE)
-							System.out.println("PLACE BOMB");
-							
+							DropBomb(player);
+						
+						WorldUpdate wd = new WorldUpdate();
+						wd.world = WORLD;
+						
+						server.sendToAllTCP(WORLD);
 							
 						return;
 					}
@@ -809,6 +809,9 @@ public class GameAlgo implements ApplicationListener{
 	
 	private void DropBomb(Player player){
 		
+		System.out.println("CLIENT VILL DROPPA BOMB!");
+		
+		
 		if(!player.CanDropBomb())
 			return;
 		
@@ -854,9 +857,7 @@ public class GameAlgo implements ApplicationListener{
 		
 		if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE))
 			mpUpdate.bomb = Input.Keys.SPACE;
-			if(!p.Dead()){
-				DropBomb(p);
-			}
+
 
 		if (Gdx.input.isKeyPressed(Input.Keys.A) && !changed){
 			if(!p.Dead()){

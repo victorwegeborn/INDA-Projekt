@@ -14,15 +14,11 @@ public class DesktopLauncher {
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 
-		new LwjglApplication(new INDAGame(), config);
+		//new LwjglApplication(new INDAGame(), config);
 		//new LwjglApplication(new TestGame(), config);
-<<<<<<< HEAD
-		new LwjglApplication(new NGame(), config);
-
-=======
 		//new LwjglApplication(new NGame(), config);
-		//new LwjglApplication(new StartGame(), config);
->>>>>>> origin/master
+		new LwjglApplication(new GameAlgo(), config);
+
 
 		
 	//config.fullscreen = true;
