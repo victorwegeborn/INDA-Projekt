@@ -226,6 +226,7 @@ public class GameServer implements Screen {
 					
 				if(player > allPlayers.size)
 					return;
+				
 				if(o instanceof MovePlayer) 		
 					currentMovePlayer[player] = (MovePlayer)o;
 
