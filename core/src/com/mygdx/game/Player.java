@@ -1,6 +1,6 @@
 package com.mygdx.game;
 import static com.mygdx.game.B2DVars.PPM;
-import static com.mygdx.game.INDAGame.WORLD;
+import static com.mygdx.game.CoreGame.WORLD;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.utils.Array;
+import com.mygdx.gameData.PlayerData;
 
 
 public class Player {
@@ -26,7 +27,7 @@ public enum State{
 }
 
 private State state;
-
+private PlayerData data;
 public Body body;
 
 private int playerNumber;
@@ -54,7 +55,7 @@ private boolean killed;
  * @param boolean player1: if true = player 1, false = player 2
  */
 
-public Player(int player, Vector2 position){
+public Player(int player, Vector2 position, World world){
 	
 	if(player < 1)
 		player = 1;
@@ -91,14 +92,17 @@ public Player(int player, Vector2 position){
 	fdef.filter.maskBits = B2DVars.BIT_BOX | B2DVars.BIT_WALL | 
 			B2DVars.BIT_ITEM | B2DVars.BIT_FIRE | B2DVars.BIT_BOMB;
 	//-----------------*
-	body = WORLD.createBody(bdef);
-	body.setUserData(this); // Store reference to player object in user data for external referencing
+	body = world.createBody(bdef);
 	body.createFixture(fdef).setUserData("player");
 	shape.dispose();
 
 	//Initialize state to down
 	state = State.Down;
 	
+	//Create player data. This will be sent as packets via kryonet
+	data = new PlayerData(B2DVars.BIT_PLAYER, player, body.getPosition().x, body.getPosition().y, true);
+	body.setUserData(data); // Store reference to data object in user data for external referencing
+
 	CreateAnimations();
 	}
 
@@ -182,7 +186,7 @@ public Player(int player, Vector2 position){
 	}
 	
 	public boolean CanDropBomb(){
-		return activeBombs.size() < bombCapacity;
+		return activeBombs.size() < data.GetBombCapacity();
 	}
 
 	public void SetState(State state){
@@ -194,8 +198,37 @@ public Player(int player, Vector2 position){
 	}
 	
 	public void Update(){
+		UpdatePlayerData();
 		UpdateActiveBombs();
 	}
+	
+	
+	private void UpdatePlayerData(){
+		
+		data.SetActive(!killed);
+		
+		data.SetPosition(body.getPosition().x - 0.5f, body.getPosition().y - 0.3f);
+		
+		data.SetVelocity(body.getLinearVelocity().x, body.getLinearVelocity().y);
+		
+		switch(state){
+		case Up:
+			data.SetState(B2DVars.PLAYER_UP);
+			break;
+		case Down:
+			data.SetState(B2DVars.PLAYER_DOWN);
+			break;
+		case Left:
+			data.SetState(B2DVars.PLAYER_LEFT);
+			break;
+		case Right:
+			data.SetState(B2DVars.PLAYER_RIGHT);
+			break;
+		}
+		
+		
+	}
+
 	
 	/**
 	 * Check all bombs for activity
@@ -228,14 +261,6 @@ public Player(int player, Vector2 position){
 		
 	}
 	
-	public void DropBomb(){
-		
-		//TODO: Implement bomb count check and keeping track of placed bombs
-		if(droppedBombs > bombCapacity)
-						return;
-		
-	}
-	
 	public void Kill(){
 		killed = true;
 	}
@@ -243,6 +268,9 @@ public Player(int player, Vector2 position){
 	public boolean Dead(){
 		return killed;
 	}
-
+	
+	public PlayerData GetData(){
+		return data;
+	}
 
 }

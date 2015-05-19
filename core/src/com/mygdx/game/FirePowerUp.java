@@ -11,6 +11,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.World;
+import com.mygdx.gameData.ItemData;
 
 public class FirePowerUp extends Item{
 	
@@ -18,10 +19,14 @@ public class FirePowerUp extends Item{
 	public FirePowerUp(World world, Vector2 poolPosition) {
 		super(world, poolPosition, B2DVars.FIRE_POWERUP);
 		
-		body.setUserData(this); //store this object for reference in body
 		TextureAtlas spriteSheet = new TextureAtlas(Gdx.files.internal("sprites/items/powerups.txt"));
 		animation = new Animation(1/12f, spriteSheet.findRegions("firepowerup"));
-		animation.setPlayMode(PlayMode.LOOP);		
+		animation.setPlayMode(PlayMode.LOOP);	
+		data = new ItemData(B2DVars.FIRE_POWERUP, body.getPosition().x, body.getPosition().y, 
+				animTimer, false);
+		
+		body.setUserData(data); //store this object for reference in body
+
 	}
 	
 	

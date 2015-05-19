@@ -9,6 +9,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.World;
+import com.mygdx.gameData.ItemData;
 
 public abstract class Item {
 
@@ -19,7 +20,7 @@ public abstract class Item {
 	protected Animation animation;
 	protected int type;
 	protected float animTimer;
-
+	protected ItemData data;
 
 	
 	public Item(World world, Vector2 poolPosition, int type){
@@ -37,7 +38,7 @@ public abstract class Item {
 		fdef.filter.categoryBits = B2DVars.BIT_ITEM;
 		fdef.filter.maskBits = B2DVars.BIT_FIRE | B2DVars.BIT_PLAYER;
 		body.createFixture(fdef);
-		shape.dispose();		
+		shape.dispose();	
 	}
 	
 	public TextureRegion Animation(){
@@ -45,10 +46,18 @@ public abstract class Item {
 	}
 	
 	public void Update(float dt){
-		if(pickedUp)
+		//If item has been flagged for reset in world -> reset item
+		if(data.ResetFlagged())
 			Reset();
 		
 		animTimer += dt;
+		UpdateItemData();
+	}
+	
+	private void UpdateItemData(){
+		data.SetPosition(body.getPosition().x, body.getPosition().y);
+		data.SetActive(active);
+		data.SetAnimTimer(animTimer);
 	}
 	
 	public void Reset(){
@@ -56,6 +65,8 @@ public abstract class Item {
 		active = false;
 		pickedUp = false;
 		body.setTransform(poolPosition, 0);
+		data.UnflagReset();
+		UpdateItemData();
 	}
 	
 	public void PickUp(){
@@ -65,4 +76,13 @@ public abstract class Item {
 	public int GetType(){
 		return type;
 	}
+	
+	public ItemData GetData(){
+		return data;
+	}
+	
+	public float AnimTimer(){
+		return animTimer;
+	}
+	
 }

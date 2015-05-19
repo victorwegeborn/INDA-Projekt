@@ -12,6 +12,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
+import com.mygdx.gameData.BombData;
 
 public class Bomb {
 	private int firePower;
@@ -22,11 +23,12 @@ public class Bomb {
 	//Pool variables
 	public boolean active;
 	public boolean detonate;
-	private Vector2 poolPosition;
 	public Vector2 detonatePosition;
+	
+	private BombData data;
 
 	public Player owner;
-	
+	private Vector2 poolPosition;
 	public Body body; //Body for easy positioning in world
 	
 	public State state;
@@ -64,15 +66,20 @@ public class Bomb {
 		fdef.filter.categoryBits = B2DVars.BIT_BOMB;
 		fdef.filter.maskBits = B2DVars.BIT_FIRE;
 		body.createFixture(fdef);
-		body.setUserData(this); // Store reference to this bomb in world body
 		shape.dispose();
+		detonate = false;
 		
+		detonatePosition = new Vector2(0f, 0f);
 		
 		
 		state = State.Idle;
 		this.firePower = firePower;
 		tickingAnim = new Animation(framerate, spriteSheet.findRegions("bomb"));
 		tickingAnim.setPlayMode(PlayMode.LOOP);
+		
+		data = new BombData(B2DVars.BIT_BOMB, body.getPosition().x, body.getPosition().y, false);
+		body.setUserData(data); // Store reference to this bombs data in world body
+
 	
 	}
 	
@@ -87,11 +94,19 @@ public class Bomb {
 	public void Update(float dt){
 		timer += dt;
 		
-		if(timer >= timeToDetonate){
-			detonate = true;
-			detonatePosition = body.getPosition();
-			Reset();
+		if(timer >= timeToDetonate && !detonate || data.Detonate() && !detonate){
+			Detonate();
 		}
+		
+		UpdateBombData();
+	}
+	
+	
+	public void UpdateBombData(){
+		data.SetPosition(body.getPosition().x, body.getPosition().y);
+		data.SetActive(active);
+		data.SetDetonate(detonate);
+		data.SetDetonatePosition(detonatePosition.x, detonatePosition.y);
 	}
 	
 	/**
@@ -99,20 +114,25 @@ public class Bomb {
 	 * and then return it to the pool.
 	 */
 	public void Detonate(){
-		detonatePosition = body.getPosition();
+		detonatePosition = new Vector2(body.getPosition().x, body.getPosition().y);
 		detonate = true;
+		data.FlagDetonation();
 		Reset();
+	}
+	
+	public BombData GetData(){
+		return data;
 	}
 	
 	public void Reset(){
 		//TODO: Reset to pool
 		active = false;
 		timer = 0f;
-	
 		body.getFixtureList().first().getFilterData().maskBits = B2DVars.BIT_FIRE;
 
 		//Return to pool position in world space
 		body.setTransform(poolPosition, 0);
+		UpdateBombData();
 	}
 
 	//TODO: Implement more animations 

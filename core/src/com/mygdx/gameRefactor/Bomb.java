@@ -64,7 +64,7 @@ public class Bomb {
 		fdef.filter.categoryBits = B2DVars.BIT_BOMB;
 		fdef.filter.maskBits = B2DVars.BIT_FIRE;
 		body.createFixture(fdef);
-		body.setUserData(this); // Store reference to this bomb in world body
+		//body.setUserData(this); // Store reference to this bomb in world body
 		shape.dispose();
 		
 		

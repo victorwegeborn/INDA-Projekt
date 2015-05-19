@@ -6,15 +6,16 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.mygdx.NGame.NGame;
 import com.mygdx.game.CoreGame;
+import com.mygdx.game.GameServer;
 import com.mygdx.gameRefactor.*;
 import com.mygdx.screen.*;
 
 
-public class DesktopLauncher {
+public class ServerLauncher {
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 
-		new LwjglApplication(new LocalGameWrapper(), config);
+		new LwjglApplication(new ServerWrapper(), config);
 		//new LwjglApplication(new TestGame(), config);
 		//new LwjglApplication(new NGame(), config);
 		//new LwjglApplication(new GameAlgo(), config);

@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.RayCastCallback;
+import com.mygdx.gameData.BombData;
+import com.mygdx.gameData.ItemData;
 
 public class FireRayCastHandler implements RayCastCallback {
 	
@@ -16,7 +18,7 @@ public class FireRayCastHandler implements RayCastCallback {
 	public float reportRayFixture(Fixture fixture, Vector2 point,
 			Vector2 normal, float fraction) {
 		
-		INDAGame.DrawSquare(point.x, point.y, Color.RED);
+		CoreGame.DrawSquare(point.x, point.y, Color.RED);
 		
 		short fixtureCategory = fixture.getFilterData().categoryBits;
 		hitPoint = point;
@@ -30,24 +32,20 @@ public class FireRayCastHandler implements RayCastCallback {
 		//If fixture is box -> destroy box. 40% chance of random item spawn
 		if(fixtureCategory == B2DVars.BIT_BOX){
 			DestroyBox(fixture);
+			ItemPlacer.SpawnRandomPowerUp(fixture.getBody().getPosition());
+		}
 			
 			//Spawn random item if i < 40
-			Random r = new Random();
-			int i = r.nextInt(100);
-			if(i < B2DVars.DROP_RATE){
-					if(i < B2DVars.DROP_RATE / 2){
-					INDAGame.PlacePowerUp(B2DVars.BOMB_POWERUP, fixture.getBody().getPosition());
-					}
-					
-					if(i >= B2DVars.DROP_RATE / 2){
-					INDAGame.PlacePowerUp(B2DVars.FIRE_POWERUP, fixture.getBody().getPosition());
-					}
-				}
-		}
+			
 		
 		if(fixtureCategory == B2DVars.BIT_BOMB){
-			Bomb b = (Bomb) fixture.getBody().getUserData();
-			b.Detonate();
+			BombData b = (BombData)fixture.getBody().getUserData();
+			b.FlagDetonation();
+		}
+		
+		if(fixtureCategory == B2DVars.BIT_ITEM){
+			ItemData i = (ItemData)fixture.getBody().getUserData();
+			i.FlagReset();
 		}
 		
 		return hasCollided ? 0 : -1;
@@ -63,15 +61,13 @@ public class FireRayCastHandler implements RayCastCallback {
 	}
 	
 	private void DestroyBox(Fixture f){
-		SpawnRandomItem(f.getBody().getPosition());  //Spawn random item at box position
+		ItemPlacer.SpawnRandomPowerUp(f.getBody().getPosition());  //Spawn random item at box position
 		
 		//Deactivate body. All inactive boxes are removed from render queue by design.
 		f.getBody().setActive(false); 
 	}
 	
-	private void SpawnRandomItem(Vector2 position){
-		//TODO: Implement random item spawn
-	}
+
 		
 
 }

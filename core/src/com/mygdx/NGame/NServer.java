@@ -96,7 +96,7 @@ public class NServer {
 	
 	// This holds per connection state.
 	static class NPlayerConnection extends Connection {
-		public NPlayer player;
+		public int player;
 	}
 	
 }

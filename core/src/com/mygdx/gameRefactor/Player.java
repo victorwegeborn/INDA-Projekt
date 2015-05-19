@@ -1,6 +1,6 @@
 package com.mygdx.gameRefactor;
 import static com.mygdx.game.B2DVars.PPM;
-import static com.mygdx.game.INDAGame.WORLD;
+import static com.mygdx.game.CoreGame.WORLD;
 
 import java.util.ArrayList;
 import java.util.Iterator;

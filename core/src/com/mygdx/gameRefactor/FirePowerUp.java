@@ -18,7 +18,7 @@ public class FirePowerUp extends Item{
 	public FirePowerUp(World world, Vector2 poolPosition) {
 		super(world, poolPosition, B2DVars.FIRE_POWERUP);
 		
-		body.setUserData(this); //store this object for reference in body
+		//body.setUserData(this); //store this object for reference in body
 		TextureAtlas spriteSheet = new TextureAtlas(Gdx.files.internal("sprites/items/powerups.txt"));
 		animation = new Animation(1/12f, spriteSheet.findRegions("firepowerup"));
 		animation.setPlayMode(PlayMode.LOOP);		
