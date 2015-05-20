@@ -170,7 +170,7 @@ public class NHostGame implements Screen {
 	
 	private void moveSelectionDown() {
 		for(int i = 0; i < selected.length; i++) {
-			if(selected[i] == 1 && i == 3)
+			if(selected[i] == 1 && i == 1)
 				break;
 			else if(selected[i] == 1) {
 				selected[i+1] = 1;

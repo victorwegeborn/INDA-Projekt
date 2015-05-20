@@ -1,7 +1,5 @@
 package com.mygdx.NGame;
-
 import java.util.ArrayList;
-
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.physics.box2d.World;
 import com.esotericsoftware.kryo.Kryo;
@@ -23,8 +21,6 @@ import com.badlogic.gdx.physics.box2d.JointDef;
 import com.badlogic.gdx.utils.LongMap;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Fixture;
-
-
 /** Network
  * 
  *  Class is used to keep things common between server and client.
@@ -33,7 +29,6 @@ import com.badlogic.gdx.physics.box2d.Fixture;
  *  of how and in wich order we register packages.
  *  
  */
-
 public class NNetwork {
 	
 	//STANDARD PORT
@@ -65,6 +60,7 @@ public class NNetwork {
 		kryo.register(java.util.ArrayList.class);
 		kryo.register(ShakeUpdate.class);
 		kryo.register(WinScreenUpdate.class);
+<<<<<<< HEAD
 
 	
 		
@@ -88,6 +84,8 @@ public class NNetwork {
 //		kryo.register(com.badlogic.gdx.utils.Array.class);
 //		kryo.register(com.badlogic.gdx.physics.box2d.Fixture.class);
 
+=======
+>>>>>>> origin/master
 	}
 	
 	public static class RequestConnection {}
