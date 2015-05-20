@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.mygdx.gameRefactor.GameRefactor;
 
 
 
@@ -124,7 +125,7 @@ public class NMainMenu implements Screen {
 				switch(i) {
 				case 0: game.setScreen(new NHostGame(game));
 						break;
-				case 1: game.setScreen(new NJoinGame(game));
+				case 1: game.setScreen(new GameRefactor(game));
 						break;
 				case 2: game.setScreen(new NOptions(game));
 						break;

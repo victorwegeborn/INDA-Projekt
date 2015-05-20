@@ -37,14 +37,29 @@ public class MapBodyBuilder {
     private static float posX;
     private static float posY;
     
-    public static Array<Body> buildShapesFromLayer(MapLayer mapLayer, float pixels, World world, short collisionLayer, String description){
+    public static Array<Box> buildBoxShapesFromLayer(MapLayer mapLayer, float pixels, 
+    		World world, short collisionLayer, String description){
+    	
+    	Array<Box> boxes = new Array<Box>();
     	Map map = new Map();
     	map.getLayers().add(mapLayer);
     	map.getLayers().get(0).setName("Colliders");
-    	return buildShapes(map, pixels, world, collisionLayer, description);
+    	Array<Body> bodies = buildShapes(map, pixels, world, collisionLayer, description, true);
+    	
+    	Box box;
+    	
+    	for(Body b : bodies){
+    		box = new Box(b);
+    		boxes.add(box);
+    	}
+    	
+    	return boxes;
+    	 
     }
 
-    public static Array<Body> buildShapes(Map map, float pixels, World world, short collisionLayer, String description) {
+    public static Array<Body> buildShapes(Map map, float pixels, World world, 
+    		short collisionLayer, String description, boolean isBoxLayer) {
+    	
         ppt = pixels;
         
         MapObjects objects = map.getLayers().get("Colliders").getObjects();
@@ -96,8 +111,10 @@ public class MapBodyBuilder {
             Body body = world.createBody(bdef);
             Fixture f = body.createFixture(fdef);
             f.setUserData(description);
-            body.setUserData(description);
-
+            
+            if(!isBoxLayer)
+            	body.setUserData(description);
+            
             bodies.add(body);
 
             shape.dispose();

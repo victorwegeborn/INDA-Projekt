@@ -20,9 +20,25 @@ public final class B2DVars {
 	public static final int MAX_SPEED = 3;
 	public static final int MAX_BOMBCAPACITY = 5;
 	
+
+	
+	//State integer representations
+	public static final int PLAYER_UP = 1;
+	public static final int PLAYER_DOWN = 2;
+	public static final int PLAYER_LEFT = 3;
+	public static final int PLAYER_RIGHT = 4;
+	public static final int PLAYER_DEAD = 5;
+	
+	public static final int FIRE_UP = 1;
+	public static final int FIRE_DOWN = 2;
+	public static final int FIRE_LEFT = 3;
+	public static final int FIRE_RIGHT = 4;
+	public static final int FIRE_HORIZONTAL = 5;
+	public static final int FIRE_VERTICAL = 6;
+	public static final int FIRE_MID = 7;
+	
 	public static final int BOMB_POWERUP = 1;
 	public static final int FIRE_POWERUP = 2;
-	
 	
 	
 	//Game config values:
@@ -34,6 +50,7 @@ public final class B2DVars {
 	
 	public static final float BOMB_TIME = 3f;
 	public static final int DROP_RATE = 50; //The drop rate for powerups in percent
+	//
 
 	
 

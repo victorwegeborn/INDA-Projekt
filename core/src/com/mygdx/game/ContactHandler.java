@@ -5,6 +5,8 @@ import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
+import com.mygdx.gameData.ItemData;
+import com.mygdx.gameData.PlayerData;
 
 
 /**
@@ -42,6 +44,7 @@ public class ContactHandler implements ContactListener {
 
 	
 	private void HandleFire(Fixture fire, Fixture other){
+		
 		//System.out.println(other.getFilterData().categoryBits);
 		short otherCategory = other.getFilterData().categoryBits;
 	
@@ -52,25 +55,22 @@ public class ContactHandler implements ContactListener {
 		
 		// Fire hits player -> player dies
 		if(otherCategory == B2DVars.BIT_PLAYER){
-			Player p = (Player)other.getBody().getUserData();
+			PlayerData p = (PlayerData)other.getBody().getUserData();
 			
-			if(!p.immortal)
+			if(!p.Immortal())
 				p.Kill();
 			
 			return;
 		}
 		
 		// Fire hits other bomb -> bomb detonates
-		if(otherCategory == B2DVars.BIT_BOMB){
-			Bomb b = (Bomb)other.getBody().getUserData();
-			b.Detonate();
-			return;
-		}
 		
+		System.out.println("other category: " + otherCategory + " BIT_ITEM: " + B2DVars.BIT_ITEM);
 		// Fire hits item -> item is destroyed
 		if(otherCategory == B2DVars.BIT_ITEM){
-			Item i = (Item)other.getBody().getUserData();
-			i.Reset();
+			System.out.println("Item destroyed");
+			ItemData i = (ItemData)other.getBody().getUserData();
+			i.FlagReset();
 			return;
 		}
 			
@@ -78,39 +78,39 @@ public class ContactHandler implements ContactListener {
 	}
 	
 	private void HandleItem(Fixture a, Fixture b){
-		Player player;
-		Item item;
+		PlayerData player;
+		ItemData item;
 		
 		if(a.getFilterData().categoryBits == B2DVars.BIT_PLAYER){
-			player = (Player)a.getBody().getUserData();
-			item = (Item)b.getBody().getUserData();
+			player = (PlayerData)a.getBody().getUserData();
+			item = (ItemData)b.getBody().getUserData();
 			
-			if(item.GetType() == B2DVars.FIRE_POWERUP){
+			if(item.ItemType() == B2DVars.FIRE_POWERUP){
 				player.IncrementFirePower();
-				item.PickUp();
+				item.FlagReset();
 				return;
 			}
 				
-			if(item.GetType() == B2DVars.BOMB_POWERUP){
+			if(item.ItemType() == B2DVars.BOMB_POWERUP){
 				player.IncrementBombCapacity();
-				item.PickUp();
+				item.FlagReset();
 				return;
 			}
 		}
 		
 		if(b.getFilterData().categoryBits == B2DVars.BIT_PLAYER){
-			player = (Player)b.getBody().getUserData();
-			item = (Item)a.getBody().getUserData();
+			player = (PlayerData)b.getBody().getUserData();
+			item = (ItemData)a.getBody().getUserData();
 			
-			if(item.GetType() == B2DVars.FIRE_POWERUP){
+			if(item.ItemType() == B2DVars.FIRE_POWERUP){
 				player.IncrementFirePower();
-				item.PickUp();
+				item.FlagReset();
 				return;
 			}
 				
-			if(item.GetType() ==  B2DVars.BOMB_POWERUP){
+			if(item.ItemType() ==  B2DVars.BOMB_POWERUP){
 				player.IncrementBombCapacity();
-				item.PickUp();
+				item.FlagReset();
 				return;
 			}
 		}
@@ -125,7 +125,7 @@ public class ContactHandler implements ContactListener {
 		
 		if(aCategory == B2DVars.BIT_BOMB || bCategory == B2DVars.BIT_BOMB){
 			if(aCategory == B2DVars.BIT_PLAYER || bCategory == B2DVars.BIT_PLAYER){
-				System.out.println("Make solid");
+				//DO STUFF
 			}
 		}
 		

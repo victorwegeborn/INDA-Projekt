@@ -11,6 +11,8 @@ import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
+import com.mygdx.gameData.FireData;
+
 
 public class Fire {
 	
@@ -18,6 +20,8 @@ public class Fire {
 	public Body body;
 	public boolean active;
 	public State state;
+	
+	private FireData data;
 	
 	private Animation fireUp, fireDown, fireLeft, fireRight, fireMid, fireVert, fireHori;
 	
@@ -62,6 +66,8 @@ public class Fire {
 		 */
 		fdef.isSensor = true;  				  
 		body.createFixture(fdef).setUserData("fire");
+		
+		data = new FireData(B2DVars.BIT_FIRE, body.getPosition().x, body.getPosition().y, animTimer, animDuration);
 		CreateFireAnimations();
 		
 	}
@@ -73,10 +79,45 @@ public class Fire {
 	}
 	
 	public void Update(float dt){
+		UpdateFireData();
+		
 		animTimer += dt;
 		if(animTimer > animDuration){
 			Reset();
 		}
+		
+	}
+	
+	public void UpdateFireData(){
+		data.SetPosition(body.getPosition().x - 0.5f, body.getPosition().y - 0.5f); //Include render offset in position
+		data.SetActive(active);
+		data.SetAnimTimer(animTimer);
+		
+		//Record current state in FireData
+		switch(state){
+		case Up:
+			data.SetState(B2DVars.FIRE_UP);
+			break;
+		case Down:
+			data.SetState(B2DVars.FIRE_DOWN);
+			break;
+		case Left:
+			data.SetState(B2DVars.FIRE_LEFT);
+			break;
+		case Right:
+			data.SetState(B2DVars.FIRE_RIGHT);
+			break;
+		case Mid:
+			data.SetState(B2DVars.FIRE_MID);
+			break;
+		case Horizontal:
+			data.SetState(B2DVars.FIRE_HORIZONTAL);
+			break;
+		case Vertical:
+			data.SetState(B2DVars.FIRE_VERTICAL);
+			break;
+		}
+		
 		
 	}
 	
@@ -87,6 +128,7 @@ public class Fire {
 	private void CreateFireAnimations(){
 		TextureAtlas sheet = new TextureAtlas(Gdx.files.internal("sprites/items/bombfire.txt"));
 		float framerate = 1/24f; 
+		
 		fireUp = new Animation(framerate, sheet.findRegions("fireup"));
 		fireUp.setPlayMode(PlayMode.NORMAL);
 		
@@ -140,6 +182,10 @@ public class Fire {
 				return fireMid;
 
 		}
+	}
+	
+	public FireData GetData(){
+		return data;
 	}
 	
 	private void Reset(){

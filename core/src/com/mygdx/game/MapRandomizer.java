@@ -19,7 +19,7 @@ import com.badlogic.gdx.utils.Array;
 
 public class MapRandomizer {
 	
-	public Array<Body> boxBodies;
+	public Array<Box> boxes;
 	public Texture mapSprite;
 	public TextureRegion boxSprite;
 	
@@ -120,7 +120,7 @@ public class MapRandomizer {
 		}
 	}
 	
-	boxBodies = MapBodyBuilder.buildShapesFromLayer(boxColliders, 32f, world, B2DVars.BIT_BOX, "box");
+	boxes = MapBodyBuilder.buildBoxShapesFromLayer(boxColliders, 32f, world, B2DVars.BIT_BOX, "box");
 	return boxLayer;
 	}
 }

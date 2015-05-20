@@ -1,9 +1,11 @@
 package com.mygdx.game;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
@@ -37,20 +39,41 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.joints.FrictionJoint;
 import com.badlogic.gdx.physics.box2d.joints.FrictionJointDef;
+import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.EndPoint;
+import com.esotericsoftware.kryonet.Listener;
+import com.esotericsoftware.kryonet.Server;
+import com.esotericsoftware.minlog.Log;
+import com.mygdx.NGame.NConfig;
+import com.mygdx.NGame.NNetwork;
+import com.mygdx.NGame.NNetwork.BombUpdate;
+import com.mygdx.NGame.NNetwork.PlayerUpdate;
+import com.mygdx.NGame.NNetwork.FireUpdate;
+import com.mygdx.NGame.NNetwork.ItemUpdate;
+import com.mygdx.NGame.NNetwork.ShakeUpdate;
+import com.mygdx.NGame.NPlayer;
+import com.mygdx.NGame.NNetwork.BoxUpdate;
+import com.mygdx.NGame.NNetwork.MovePlayer;
 import com.mygdx.game.Player.State;
+import com.mygdx.gameData.BombData;
+import com.mygdx.gameData.BoxData;
+import com.mygdx.gameData.FireData;
+import com.mygdx.gameData.ItemData;
+import com.mygdx.gameData.PlayerData;
 
-public class INDAGame extends ApplicationAdapter {
+public class GameServer implements Screen {
 	SpriteBatch batch;
 	Texture img;
-
-	// TODO: Migrate to server!
+	private static boolean renderWorld = false;
+	
+	
 	public static World WORLD; // Physics world
 	private static ContactHandler contactHandler = new ContactHandler();
 	private static WorldQuery worldQuery;
 	private static FireRayCastHandler fireRayCast = new FireRayCastHandler();
 	
 	private Player player;
-	private static Array<Player> allPlayers = new Array<Player>();
+	private static ArrayList<Player> allPlayers = new ArrayList<Player>();
 	
 	public static Body FRICTION; // Body used to maintain friction between players and floor
 	private static float timeStep = 1f / 60f; // Interval of physics simulation
@@ -61,7 +84,7 @@ public class INDAGame extends ApplicationAdapter {
 	static float sWidth = 0.2f, sHeight = 0.2f;
 	static ArrayList<Square> squares = new ArrayList<Square>(); 
 
-	// Dummy game variables, move to Player-class?
+	// Dummy game variables, move to Player-class / B2DVars?
 	private static final float MOVE_FORCE = 10f;
 	private static final float MAX_MOVE_SPEED = 3f;
 
@@ -82,38 +105,34 @@ public class INDAGame extends ApplicationAdapter {
 	private static int[] topLayers = {2};			 //2: All sprites to render above everything else
 	
 	private TiledMapTileLayer boxLayer;
-	private Array<Body> boxBodies;
+	private Array<Box> boxes;
 	private Texture mapSprite;
 	private TextureRegion boxSprite;
 	
 	private TiledMapTileLayer wallLayer;
-	//
-
 	
-	// Items
-	private static int pooledBombs = 60;
-	private static Vector2 bombPoolPosition = new Vector2(-100, -100);
-	private static Bomb[] bombs = new Bomb[pooledBombs];
-	
-	private static int pooledFire = 100; 
-	private static Vector2 firePoolPosition = new Vector2(-200, -200);
-	private static Fire[] fires = new Fire[pooledFire];
-	
-	private static int pooledPowerUps = 40; 
-	private static Vector2 powPoolPosition = new Vector2(200, 200);
-	private static BombPowerUp[] bombPows = new BombPowerUp[pooledPowerUps];
-	private static FirePowerUp[] firePows = new FirePowerUp[pooledPowerUps];
-	//
-	
+	private MovePlayer[] currentMovePlayer;
 	
 	
 	// Debug-variables
 	private static FPSLogger fps = new FPSLogger();
 	
 	float stateTime;
+	
+	private Server server;
+	private int playerCount;
+	
+	static class NPlayerConnection extends Connection {
+		public int player;
+	}
+	
+	
 
-	@Override
-
+	
+	public GameServer(){
+		create();
+	}
+	
 	/**
 	 * Due to internal referencing,
 	 * a certain order of creation
@@ -122,7 +141,10 @@ public class INDAGame extends ApplicationAdapter {
 	 * All other create-methods 
 	 * have non-critical placement
 	 */
+	
 	public void create() {
+		
+		SetupServer();
 		
 		SetupCamera();
 		
@@ -130,7 +152,7 @@ public class INDAGame extends ApplicationAdapter {
 	
 		CreateWorld();
 		
-		CreatePlayers(2);
+		CreatePlayers(4);
 	
 		InitializeItemPools();
 		
@@ -139,9 +161,73 @@ public class INDAGame extends ApplicationAdapter {
 		SetupDebugRenderers();
 		
 		stateTime = 0.0f;
+		playerCount = 0;
 		
 
 	}
+	
+	private void SetupServer(){
+		
+		
+		
+		server = new Server();
+		
+		server = new Server() {
+			protected Connection newConnection () {
+				playerCount++;
+				Log.info("Current player count: " + playerCount);
+				NPlayerConnection c = new NPlayerConnection();
+				c.player = playerCount;
+				// By providing our own connection implementation, we can store per
+				// connection state without a connection ID to state look up.
+				return c;
+			}
+		};
+		
+		//Register all packages that will be sent between server and client
+		NNetwork.register(server);
+				
+		//Process all packages in the listener
+		server.addListener(new Listener() {
+					
+			public void connected (Connection c) {
+				Log.info("[SERVER] player connecting");
+			}
+
+					
+			public void disconnected (Connection c) {
+				Log.info("[SERVER] player disconnecting");
+			}
+
+			public void received (Connection c, Object o) {
+				int player = 0;
+				if(c instanceof NPlayerConnection){
+					//System.out.println("NPlayerConnection received!");
+				player = ((NPlayerConnection) c).player - 1;	
+				}
+					
+				if(player > allPlayers.size())
+					return;
+				
+				if(o instanceof MovePlayer) 		
+					currentMovePlayer[player] = (MovePlayer)o;
+
+						return;
+					}
+				
+			});
+				
+			try {
+				server.bind(NConfig.PORT);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				Gdx.app.exit();
+			}
+			server.start();
+	}
+	
+	
 	
 	private void SetupCamera(){
 
@@ -172,50 +258,12 @@ public class INDAGame extends ApplicationAdapter {
 	 * for accurate physics calculation
 	 */
 	private void CreatePlayers(int numberOfPlayers){
+		//Init the update field
+		currentMovePlayer = new MovePlayer[numberOfPlayers];
+		for(int i = 0; i < numberOfPlayers; i++)
+			currentMovePlayer[i] = new MovePlayer();
 		
-		if(numberOfPlayers < 1)
-			numberOfPlayers = 1;
-		
-		if(numberOfPlayers > 4)
-			numberOfPlayers = 4;
-		
-		// Join players to friction floor----***
-		FrictionJointDef def = new FrictionJointDef();
-		def.bodyA = FRICTION;
- 		def.maxForce = 2f;// set something sensible;
-		def.maxTorque = 2f;// set something sensible;
-		FrictionJoint joint;
-		// ----------------------------------***
-		
-		Vector2 spawnPos;
-		
-		for(int i = 0; i < numberOfPlayers; i++){
-			
-			//Set spawn position for players 1 - 4
-			switch(i){
-			case 0:
-				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(3, 1));
-				break;
-			case 1:
-				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(16, 8));
-				break;
-			case 2:
-				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(16, 1));
-				break;
-			case 3:
-				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(3, 8));
-				break;
-			default:
-				spawnPos = new Vector2(3,2);
-			}
-			
-			
-			allPlayers.add(new Player(i + 1, spawnPos));
-			def.bodyB = allPlayers.get(i).body;
-			joint = (FrictionJoint) WORLD.createJoint(def);
-		}
-		
-		player = allPlayers.get(0);  
+		allPlayers = PlayerCreator.CreatePlayers(numberOfPlayers, FRICTION, WORLD);
 		
 	}
 	
@@ -266,17 +314,17 @@ public class INDAGame extends ApplicationAdapter {
 	private void InitializeItemPools(){
 		
 		// Establish item pools--------------***
-		for(int b = 0; b < bombs.length; b++)
-			bombs[b] = new Bomb(1, B2DVars.BOMB_TIME, WORLD, bombPoolPosition);
+		for(int b = 0; b < ItemPool.bombs.length; b++)
+			ItemPool.bombs[b] = new Bomb(1, B2DVars.BOMB_TIME, WORLD, ItemPool.bombPoolPosition);
 		
-		for (int f = 0; f < fires.length; f++)
-			fires[f] = new Fire(WORLD, firePoolPosition);
+		for (int f = 0; f < ItemPool.fires.length; f++)
+			ItemPool.fires[f] = new Fire(WORLD, ItemPool.firePoolPosition);
 		
-		for(int b = 0; b < bombPows.length; b++)
-			bombPows[b] = new BombPowerUp(WORLD, powPoolPosition);
+		for(int b = 0; b < ItemPool.bombPows.length; b++)
+			ItemPool.bombPows[b] = new BombPowerUp(WORLD, ItemPool.powPoolPosition);
 		
-		for(int f = 0; f < firePows.length; f++)
-			firePows[f] = new FirePowerUp(WORLD, powPoolPosition);
+		for(int f = 0; f < ItemPool.firePows.length; f++)
+			ItemPool.firePows[f] = new FirePowerUp(WORLD, ItemPool.powPoolPosition);
 		//-----------------------------------***
 		
 	}
@@ -305,13 +353,13 @@ public class INDAGame extends ApplicationAdapter {
 
 		
 
-		MapBodyBuilder.buildShapes(tileMap, B2DVars.PPM, WORLD, B2DVars.BIT_WALL, "wall");  //Build walls
+		MapBodyBuilder.buildShapes(tileMap, B2DVars.PPM, WORLD, B2DVars.BIT_WALL, "wall", false);  //Build walls
 		MapRandomizer mapRand = new MapRandomizer();
 		
 		boxLayer = mapRand.fillMap(WORLD, tileMap, 50); //Construct random boxes
 		boxLayer.setVisible(false);
 		tileMap.getLayers().add(boxLayer);
-		boxBodies = mapRand.boxBodies;
+		boxes = mapRand.boxes;
 		mapSprite = mapRand.mapSprite;
 		boxSprite = mapRand.boxSprite;
 		
@@ -325,26 +373,30 @@ public class INDAGame extends ApplicationAdapter {
 	}
 	
 	public void Update(float dt) {
+		CheckAllPlayerMovement();
+		
 		WORLD.step(timeStep, 1, 1); // Note that step is called with a fixed timestep
 		
 		UpdateGameObjects(dt);
 		
 		if(B2DVars.SCREEN_SHAKE)
 			shake.update(dt, camera, cameraCenterPos);
+		
+		SendActiveObjects();
 
+		
 	}
 	
 
+	
 	@Override
-	public void render() {
-		HandleInputs();
-		HandleInputsP2(); // Temp local multiplayer 
-		
+	public void render(float dt) {
+			
 		// Update statetime and physics
 		stateTime += Gdx.graphics.getDeltaTime();
 		Update(Gdx.graphics.getDeltaTime());
 
-
+		if(renderWorld){
 		
 		// Clear screen
 		Gdx.gl.glClearColor(0, 0, 0, 0);
@@ -360,6 +412,7 @@ public class INDAGame extends ApplicationAdapter {
 		batch_tiledMapRenderer.render(bottomLayers);
 		
 
+		
 		//Batch BEGIN, order of rendering decides displayed layering----***
 		batch.begin();
 	
@@ -374,9 +427,8 @@ public class INDAGame extends ApplicationAdapter {
 		RenderFire();
 		
 		batch.end();
-		//Batch END-----------------------------------------------------***
+		//Batch END-----------------------------------------------------***	
 		
-
 		
 		batch_tiledMapRenderer.render(topLayers);
 		
@@ -386,39 +438,163 @@ public class INDAGame extends ApplicationAdapter {
 		//b2dr.render(WORLD, camera.combined);
 		//RenderSquares();
 		//PrintAllContacts();
-		fps.log();
-
+		//fps.log();
+		}
 
 	}
 	
 	/**
-	 * Calls the Update-method for all active game objects
+	 * Calls the Update-method for all active game objects.
+	 * This step is important in order to keep object data
+	 * up to date over a network
 	 * @param dt deltatime for updates as float
 	 */
 	private void UpdateGameObjects(float dt){
+		
 		for(Player p : allPlayers){
 			if(!p.Dead())
 				p.Update();	
 		}
 		
-		for(Bomb b : bombs){
+		for(Bomb b : ItemPool.bombs){
 			if(b.active)
 				b.Update(dt);
+			
+			if(b.detonate){
+				//System.out.println("detonatePosition: " + b.detonatePosition + " body position" + b.body.getPosition());
+				DetonateBomb(b);
+			}
 		}
 		
-		for(Fire f : fires){
+		for(Fire f : ItemPool.fires){
 			if(f.active)
 				f.Update(dt);
 		}
 		
-		for(FirePowerUp f : firePows)
+		for(FirePowerUp f : ItemPool.firePows)
 				f.Update(dt);
 	
 		
-		for(BombPowerUp b : bombPows)
+		for(BombPowerUp b : ItemPool.bombPows)
 				b.Update(dt);
 		
 		
+		for(Box b : boxes)
+			b.Update(dt);	
+	}
+	
+	private void SendActiveObjects(){
+		
+		//**BOXES (BoxUpdate)**
+		BoxUpdate boxUpdate = new BoxUpdate(); 
+		ArrayList<BoxData> activeBoxes = new ArrayList<BoxData>();
+		for(Box b : boxes){
+			if(b.IsActive())
+				activeBoxes.add((BoxData)b.body.getUserData());
+		}
+		boxUpdate.boxes = activeBoxes;
+		server.sendToAllTCP(boxUpdate);
+		
+		//**PLAYERS (PlayerUpdate)**
+		PlayerUpdate playerUpdate = new PlayerUpdate();
+		ArrayList<PlayerData> activePlayers = new ArrayList<PlayerData>();
+		for(Player p : allPlayers){
+			if(!p.Dead())
+				activePlayers.add((PlayerData)p.body.getUserData());
+		}
+		playerUpdate.players = activePlayers;
+		server.sendToAllTCP(playerUpdate);
+		
+		//**BOMBS (BombUpdate)**
+		BombUpdate bombUpdate = new BombUpdate();
+		ArrayList<BombData> activeBombs = new ArrayList<BombData>();
+		for(Bomb b : ItemPool.bombs){
+			if(b.active){
+				activeBombs.add(b.GetData());
+			}	
+		bombUpdate.bombs = activeBombs;
+		server.sendToAllTCP(bombUpdate);
+		
+		}
+		
+		//**Fires (FireUpdate)**
+		FireUpdate fireUpdate = new FireUpdate();
+		ArrayList<FireData> activeFires = new ArrayList<FireData>();
+		for(Fire f : ItemPool.fires){
+			if(f.active)
+				activeFires.add(f.GetData());
+		}
+		fireUpdate.fires = activeFires;
+		server.sendToAllTCP(fireUpdate);
+		
+		
+		//**Bomb PowerUps && Fire PowerUps (ItemUpdate)**
+		ItemUpdate  itemUpdate = new ItemUpdate();
+		ArrayList<ItemData> activeItems = new ArrayList<ItemData>();
+		
+		for(BombPowerUp b : ItemPool.bombPows){
+			if(b.active)
+				activeItems.add(b.GetData());
+		}
+		
+		for(FirePowerUp f : ItemPool.firePows){
+			if(f.active)
+				activeItems.add(f.GetData());
+		}
+		
+		itemUpdate.items = activeItems;
+		server.sendToAllTCP(itemUpdate);
+	}
+	
+	private void CheckAllPlayerMovement(){
+		for(Player p : allPlayers){
+			if(!p.Dead())
+				MovePlayer(p, currentMovePlayer[p.GetPlayerNumber() - 1]);
+		}
+	}
+	
+
+	
+	private void MovePlayer(Player p, MovePlayer moveData){
+		
+	switch(moveData.direction){
+		case Input.Keys.A: //System.out.println("[SERVER] CALCULATE TO MOVE LEFT");
+		if(!p.Dead()){
+			p.SetState(State.Left);
+			if (Math.abs(p.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
+				p.body.applyForceToCenter(new Vector2(-MOVE_FORCE, 0),	true);
+		}
+	
+		break;
+		case Input.Keys.D: //System.out.println("[SERVER] CALCULATE TO MOVE RIGHT");
+		if(!p.Dead()){
+			p.SetState(State.Right);
+
+			if (Math.abs(p.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
+				p.body.applyForceToCenter(new Vector2(MOVE_FORCE, 0), true);
+		}	
+	
+		break;
+		case Input.Keys.W: //System.out.println("[SERVER] CALCULATE TO MOVE UP");
+		if(!p.Dead()){
+			p.SetState(State.Up);
+			
+			if (Math.abs(p.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
+				p.body.applyForceToCenter(new Vector2(0, MOVE_FORCE), true);
+			}
+		break;
+		case Input.Keys.S: //System.out.println("[SERVER] CALCULATE TO MOVE DOWN");
+		if(!p.Dead()){
+			p.SetState(State.Down);
+
+			if (Math.abs(p.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
+				p.body.applyForceToCenter(new Vector2(0, -MOVE_FORCE),	true);
+		}
+		break;
+		}
+	
+		if(((MovePlayer) moveData).bomb == Input.Keys.SPACE)
+			ItemPlacer.DropBomb(p);		
 	}
 	
 	private void RenderSquares(){
@@ -434,10 +610,9 @@ public class INDAGame extends ApplicationAdapter {
 	}
 	
 	private void RenderBoxes(){
-		Vector2 origin = new Vector2(0,0);
-		for(Body b : boxBodies){
-			if(b.isActive())
-				batch.draw(boxSprite, b.getPosition().x, b.getPosition().y, 1, 1);
+		for(Box b : boxes){
+			if(b.IsActive())
+				batch.draw(boxSprite, b.body.getPosition().x, b.body.getPosition().y, 1, 1);
 			
 		}
 	}
@@ -447,7 +622,7 @@ public class INDAGame extends ApplicationAdapter {
 	 */
 	private void RenderPlayers(){
 		for(Player p : allPlayers){
-		if(!p.Dead()){
+		if(!p.GetData().Dead()){
 			batch.draw(p.Animation().getKeyFrame(stateTime, true),
 					p.body.getPosition().x - 0.5f,
 					p.body.getPosition().y - 0.3f, 1, 1);
@@ -461,14 +636,10 @@ public class INDAGame extends ApplicationAdapter {
 	 */
 	
 	private void RenderBombs(){
-		for(Bomb b : bombs){
+		for(Bomb b : ItemPool.bombs){
 			if(b.active && !b.detonate){
 				batch.draw(b.Animation(), b.body.getPosition().x,
 				b.body.getPosition().y, 1, 1);
-			}
-			
-			else if(b.detonate){
-				DetonateBomb(b);
 			}
 		}
 		
@@ -482,11 +653,12 @@ public class INDAGame extends ApplicationAdapter {
 	private void RenderFire(){
 		float x;
 		float y;
-		for (Fire f : fires){	
+		for (Fire f : ItemPool.fires){	
 			if(f.active){
 				x = f.body.getPosition().x - 0.5f; //Align animation with body
 				y = f.body.getPosition().y - 0.5f; //Align animation with body
 				batch.draw(f.Animation().getKeyFrame(f.animTimer), x, y, 1, 1);
+				
 			}
 		}
 	}
@@ -495,7 +667,7 @@ public class INDAGame extends ApplicationAdapter {
 		float x;
 		float y;
 		
-		for(FirePowerUp f : firePows){
+		for(FirePowerUp f : ItemPool.firePows){
 			if(f.active){
 				x = f.body.getPosition().x;
 				y = f.body.getPosition().y;
@@ -503,7 +675,7 @@ public class INDAGame extends ApplicationAdapter {
 			}
 		}
 			
-		for(BombPowerUp b : bombPows){
+		for(BombPowerUp b : ItemPool.bombPows){
 			if(b.active){
 				x = b.body.getPosition().x;
 				y = b.body.getPosition().y;
@@ -512,51 +684,7 @@ public class INDAGame extends ApplicationAdapter {
 		}		
 		
 	}
-	
-	/**
-	 * Place the specified power up at the specified position
-	 * @param type 
-	 * @param position
-	 */
-	
-	public static void PlacePowerUp(int type, Vector2 position){
-		
-		switch(type){
-		
-		case B2DVars.BOMB_POWERUP:
-			
-			BombPowerUp bombPow;
-			
-			for(BombPowerUp b : bombPows){
-				if(!b.active){
-					bombPow = b;
-					bombPow.body.setTransform(position, 0);
-					bombPow.active = true;
-					break;
-				}		
-			}
-			
-				break;
-				
-		case B2DVars.FIRE_POWERUP:
-			
-			FirePowerUp firePow;
-			
-			for(FirePowerUp f : firePows){
-				if(!f.active){
-					firePow = f;
-					firePow.body.setTransform(position, 0);
-					firePow.active = true;
-					break;
-				}		
-			}
-				break;
-			
-		default:
-			break;
-			
-		}	
-	}
+
 	
 	
 	/**
@@ -566,17 +694,18 @@ public class INDAGame extends ApplicationAdapter {
 	 */
 	
 	private void DetonateBomb(Bomb b){
+		
 	
 				int firePower = b.GetFirePower();
-				
 				float x = b.detonatePosition.x;
-				float y = b.detonatePosition.y;
+				float y = b.detonatePosition.y;				
+				System.out.println("detonate: " + x + " " + y);
 				float offset = 0.5f;
 				float rayx = x + offset;
 				float rayy = y + offset;
 				DrawSquare(rayx, rayy, Color.WHITE);
 								
-				SetFire(x, y);
+				ItemPlacer.SetFire(x, y, WORLD);
 
 				if(Gdx.input.isKeyPressed(Input.Keys.F)){
 					System.out.println("position x: " + x + " y:" + y);
@@ -609,7 +738,7 @@ public class INDAGame extends ApplicationAdapter {
 
 								
 								if(!obstacleHitUp){
-									fireU = SetFire(x, y + f);
+									fireU = ItemPlacer.SetFire(x, y + f, WORLD);
 									fireU.state = f == firePower ? Fire.State.Up : Fire.State.Vertical;
 								}
 							}
@@ -625,7 +754,7 @@ public class INDAGame extends ApplicationAdapter {
 								
 							
 								if(!obstacleHitDown){
-									fireD = SetFire(x, y - f);
+									fireD = ItemPlacer.SetFire(x, y - f, WORLD);
 									fireD.state = f == firePower ? Fire.State.Down : Fire.State.Vertical;
 								}
 							}
@@ -641,7 +770,7 @@ public class INDAGame extends ApplicationAdapter {
 
 							
 								if(!obstacleHitRight){
-									fireR = SetFire(x + f, y);
+									fireR = ItemPlacer.SetFire(x + f, y, WORLD);
 									fireR.state = f == firePower ? Fire.State.Right : Fire.State.Horizontal;
 								}
 							}	
@@ -657,276 +786,34 @@ public class INDAGame extends ApplicationAdapter {
 
 							
 								if(!obstacleHitLeft){	
-									fireL = SetFire(x - f, y);
+									fireL = ItemPlacer.SetFire(x - f, y, WORLD);
 									fireL.state = f == firePower ? Fire.State.Left : Fire.State.Horizontal;
 								}
 							}
 							
 					}
 				
+				//Tell all clients to initiate shake effect
+				ShakeUpdate shakeUpdate = new ShakeUpdate();
+				shakeUpdate.shakeFactor = B2DVars.SHAKE_TIME * firePower;	
+				server.sendToAllTCP(shakeUpdate);
+				
 				shake.shake(B2DVars.SHAKE_TIME * firePower); //Screen shakes proportionately to fire power
 				b.detonate = false;
+				b.GetData().UnflagDetonation();
 			
 		}
 	
-	
-
-	
-	private boolean isOccupied(float x, float y){
-		//TODO: Implement occupation check
-		return false;
-	}
 	
 	
 	//Useful for debugging world checks
 	public static void DrawSquare(float x, float y, Color color){
 		squares.add(new Square(x, y, color));	
 	}
-	
-	
-	/**
-	 * Grabs a Fire-object from the pool. If all
-	 * fire-objects are active, creates a new fire.
-	 * @return reference to a Fire-body in world
-	 */
-	private Fire SetFire(float x, float y){
-		Fire fire = null;
-		
-		for(Fire f : fires){
-			if(!f.active){
-				fire = f;
-				break;
-			}		
-		}	
-		
-		//If all fires are active, create new fire
-		if(fire == null){
-			fire = new Fire(WORLD, firePoolPosition);
-			System.out.println("Fire pool buffer underrun");
-		}
-
-		fire.body.setTransform(x + 0.5f, y + 0.5f, 0);
-		fire.active = true;
-		
-		return fire;
-	}
-
-	
-	/**
-	 * Grabs the first inactive bomb in bomb pool,
-	 * places it at players position (quantized to
-	 * nearest tile center)
-	 */
-	
-	private void DropBomb(Player player){
-		
-		if(!player.CanDropBomb())
-			return;
-		
-		BombQuery bombQuery = new BombQuery();
-		int firePower = player.GetFirePower();
-		Vector2 bombPosition = CoordinateConverter.quantizePositionToGrid(player.body.getPosition());
-		WORLD.QueryAABB(bombQuery, bombPosition.x - 0.2f, bombPosition.y - 0.2f, bombPosition.x + 0.2f, bombPosition.y + 0.2f);
-		
-		if(bombQuery.tileHasBomb){
-			System.out.println("Tile has bomb already.");
-			return;
-		}
-		
-		for(Bomb bomb : bombs){
-			if(!bomb.active){
-				
-				
-				//Flag bomb as active, set state to Ticking, and set firepower to players current firepower
-				bomb.active = true;
-				bomb.state = Bomb.State.Ticking;
-				bomb.SetFirePower(firePower); 
-				player.body.getPosition();
-				//Quantize player position to nearest tile center and place bomb there
-				bomb.body.setTransform(bombPosition, 0);
-				
-				player.RegisterDroppedBomb(bomb);
-				return;
-			}
-			
-		}
-		
-	}
-	
-	
-	private void HandleInputsP2(){
-		Player p = allPlayers.get(1);
-		if (Gdx.input.isKeyJustPressed(Input.Keys.T))
-			if(!p.Dead()){
-				DropBomb(p);
-			}
-
-		if (Gdx.input.isKeyPressed(Input.Keys.A)){
-			if(!p.Dead()){
-				p.SetState(State.Left);
-				if (Math.abs(p.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
-					p.body.applyForceToCenter(new Vector2(-MOVE_FORCE, 0),	true);
-		}
-			return;
-		}
-		if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-			if(!p.Dead()){
-				p.SetState(State.Right);
-
-				if (Math.abs(p.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
-					p.body.applyForceToCenter(new Vector2(MOVE_FORCE, 0), true);
-			}
-
-			return;
-
-		}
-
-		if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-			if(!p.Dead()){
-				p.SetState(State.Up);
-				
-				if (Math.abs(p.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
-					p.body.applyForceToCenter(new Vector2(0, MOVE_FORCE), true);
-				}
-			return;
-		}
-
-		if (Gdx.input.isKeyPressed(Input.Keys.S)) {
-			if(!p.Dead()){
-				p.SetState(State.Down);
-
-				if (Math.abs(p.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
-					p.body.applyForceToCenter(new Vector2(0, -MOVE_FORCE),	true);
-			}
-			return;
-		}
 		
 		
-	}
-	
-	
-	
-	private void HandleInputs() {
-		
 
-		if (Gdx.input.isKeyPressed(Input.Keys.Q))
-			Gdx.app.exit();
-		
-		if (Gdx.input.isKeyJustPressed(Input.Keys.P))
-			if(!player.Dead()){
-				DropBomb(player);
-			}
-
-		if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-			if(!player.Dead()){
-				player.SetState(State.Left);
-				if (Math.abs(player.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
-					player.body.applyForceToCenter(new Vector2(-MOVE_FORCE, 0),	true);
-		}
-			return;
-		}
-		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-			if(!player.Dead()){
-				player.SetState(State.Right);
-
-				if (Math.abs(player.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
-					player.body.applyForceToCenter(new Vector2(MOVE_FORCE, 0), true);
-			}
-
-			return;
-
-		}
-
-		if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-			if(!player.Dead()){
-				player.SetState(State.Up);
-				
-				if (Math.abs(player.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
-					player.body.applyForceToCenter(new Vector2(0, MOVE_FORCE), true);
-				}
-			return;
-		}
-
-		if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-			if(!player.Dead()){
-				player.SetState(State.Down);
-
-				if (Math.abs(player.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
-					player.body.applyForceToCenter(new Vector2(0, -MOVE_FORCE),	true);
-			}
-			return;
-		}
-		
-
-		/**
-		 * Below are controls for dev-purposes
-		 */
-		if (Gdx.input.isKeyPressed(Input.Keys.I)) {
-			camera.zoom += 0.2f;
-			camera.update();
-			batch.setProjectionMatrix(camera.combined);
-
-		}
-
-		if (Gdx.input.isKeyPressed(Input.Keys.O)) {
-			camera.zoom -= 0.2f;
-			camera.update();
-			batch.setProjectionMatrix(camera.combined);
-
-		}
-		
-		if(Gdx.input.isKeyPressed(Input.Keys.B))
-			System.out.println("Bodies in world: " + WORLD.getBodyCount());
-
-		if(Gdx.input.isKeyJustPressed(Input.Keys.U)){
-			float x = Gdx.input.getX();
-			float y = Gdx.input.getY();
-			System.out.println("Current mouse pos. x: " + Gdx.input.getX() + " y: " + Gdx.input.getY());
-		}
-		
-
-		
-		if(Gdx.input.isKeyJustPressed(Input.Keys.J)){
-			Vector2 pos = player.body.getPosition();
-			float posY = Math.round(pos.y);
-			float posX = Math.round(pos.x);
-			int iposY = (int)pos.y;
-			int iposX = (int)pos.x;
-					
-			System.out.println("Current character world position x: " + pos.x + " y: " + pos.y);
-			System.out.println("Current character world position (round) x: " + posX + " y: " + posY);
-			System.out.println("Current character world position (int) x: " + iposX + " y: " + iposY);
-			
-			int bombCount = 0;
-			for(Bomb b : bombs){
-				if(b.active)
-					bombCount++;
-			}
-			
-			int fireCount = 0;
-			for(Fire f : fires){
-				if(f.active)
-					fireCount++;
-			}
-			
-
-			System.out.println("Current active bombs: " + bombCount + " Current active fires: " + fireCount);
-			System.out.println("Fire pool object count: " + fires.length + " Bomb pool object count: " + bombs.length);
-		
-
-			
-		}
-		
-		if(Gdx.input.isKeyJustPressed(Input.Keys.V)){
-			for(Fire f : fires)
-				System.out.println(f.active);
-		}
-		
-		if(Gdx.input.isKeyJustPressed(Input.Keys.L))
-			DrawSquare(player.body.getPosition().x, player.body.getPosition().y, Color.BLUE);
-	}
-		
-		private void PrintAllContacts(){
+	private void PrintAllContacts(){
 			Array<Contact> contacts = WORLD.getContactList();
 			
 			for(Contact c : contacts){
@@ -943,6 +830,41 @@ public class INDAGame extends ApplicationAdapter {
 			
 				System.out.println(a + " at position " + apos + " collides with " + b + " at position " + bpos);
 			}
+		}
+
+	public void show() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void resize(int width, int height) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void pause() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void resume() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void hide() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void dispose() {
+			// TODO Auto-generated method stub
+			
 		}
 		
 			
