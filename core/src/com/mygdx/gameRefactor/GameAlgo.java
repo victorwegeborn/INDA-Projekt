@@ -134,9 +134,9 @@ public class GameAlgo implements ApplicationListener{
 	public void create(){
 		SetupGame();
 		
-		server = new Server();
+
 		
-		server = new Server() {
+		server = new Server(32764, 4096) {
 			protected Connection newConnection () {
 				// By providing our own connection implementation, we can store per
 				// connection state without a connection ID to state look up.
@@ -178,10 +178,12 @@ public class GameAlgo implements ApplicationListener{
 						if(((MovePlayer) o).bomb == Input.Keys.SPACE)
 							DropBomb(player);
 						
+						Array<Body> bodies = new Array<Body>();
 						WorldUpdate wd = new WorldUpdate();
-						wd.world = WORLD;
+						WORLD.getBodies(bodies);
+						wd.bodies = bodies;
 						
-						server.sendToAllTCP(WORLD);
+						server.sendToAllTCP(wd);
 							
 						return;
 					}

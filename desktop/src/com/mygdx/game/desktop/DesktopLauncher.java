@@ -16,8 +16,8 @@ public class DesktopLauncher {
 
 		//new LwjglApplication(new INDAGame(), config);
 		//new LwjglApplication(new TestGame(), config);
-		//new LwjglApplication(new NGame(), config);
-		new LwjglApplication(new GameAlgo(), config);
+		new LwjglApplication(new NGame(), config);
+		//new LwjglApplication(new GameAlgo(), config);
 
 
 		

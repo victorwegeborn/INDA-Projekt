@@ -1,9 +1,21 @@
 package com.mygdx.NGame;
 
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.physics.box2d.World;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.EndPoint;
+import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.physics.box2d.Transform;
+import com.badlogic.gdx.physics.box2d.MassData;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
+import com.badlogic.gdx.physics.box2d.Filter;
+import com.badlogic.gdx.physics.box2d.Shape.Type;
+import com.badlogic.gdx.physics.box2d.JointDef;
+import com.badlogic.gdx.utils.LongMap;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.physics.box2d.Fixture;
 
 
 /** Network
@@ -30,7 +42,21 @@ public class NNetwork {
 		kryo.register(AcceptConnection.class);
 		kryo.register(MovePlayer.class);
 		kryo.register(UpdatedPlayer.class);
-
+		kryo.register(WorldUpdate.class);
+		kryo.register(com.badlogic.gdx.physics.box2d.World.class);
+		kryo.register(com.badlogic.gdx.physics.box2d.Transform.class);
+		kryo.register(com.badlogic.gdx.physics.box2d.MassData.class);
+		kryo.register(com.badlogic.gdx.physics.box2d.BodyDef.class);
+		kryo.register(com.badlogic.gdx.physics.box2d.BodyDef.BodyType.class);
+		kryo.register(com.badlogic.gdx.physics.box2d.Filter.class);
+		kryo.register(com.badlogic.gdx.physics.box2d.Shape.Type.class);
+		kryo.register(com.badlogic.gdx.physics.box2d.JointDef.class);
+		kryo.register(com.badlogic.gdx.utils.LongMap.class);
+		kryo.register(long[].class);
+		kryo.register(Object[].class);
+		kryo.register(com.badlogic.gdx.physics.box2d.Body.class);
+		kryo.register(com.badlogic.gdx.utils.Array.class);
+		kryo.register(com.badlogic.gdx.physics.box2d.Fixture.class);
 	}
 	
 	public static class RequestConnection {}
@@ -38,5 +64,5 @@ public class NNetwork {
 	public static class MovePlayer { public int direction = -1;
 									 public int bomb = -1;}
 	public static class UpdatedPlayer { public NPlayer updatedPlayer; }
-	public static class WorldUpdate { public World world; }
+	public static class WorldUpdate { public Array<Body> bodies; }
 }
