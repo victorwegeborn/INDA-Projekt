@@ -32,12 +32,8 @@ public class FireRayCastHandler implements RayCastCallback {
 		//If fixture is box -> destroy box. 40% chance of random item spawn
 		if(fixtureCategory == B2DVars.BIT_BOX){
 			DestroyBox(fixture);
-			ItemPlacer.SpawnRandomPowerUp(fixture.getBody().getPosition());
 		}
-			
-			//Spawn random item if i < 40
-			
-		
+					
 		if(fixtureCategory == B2DVars.BIT_BOMB){
 			BombData b = (BombData)fixture.getBody().getUserData();
 			b.FlagDetonation();

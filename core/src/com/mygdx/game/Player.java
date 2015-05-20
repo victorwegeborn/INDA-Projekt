@@ -103,17 +103,19 @@ public Player(int player, Vector2 position, World world){
 	data = new PlayerData(B2DVars.BIT_PLAYER, player, body.getPosition().x, body.getPosition().y, true);
 	body.setUserData(data); // Store reference to data object in user data for external referencing
 
-	CreateAnimations();
+	CreateAnimations(playerNumber);
 	}
 
-	private void CreateAnimations(){
+	private void CreateAnimations(int playernr){
 
 		//TODO: If player1 == false, construct using player 2 sprite sheet
 		//i.e. using spriteSheet = player1 == true ? [player1sheet] : [player2sheet];
 		//If more players are to be integrated, consider a switch statement
 		
+		String sheetFile = "sprites/characters/ninja" + playernr + ".txt";
+		
 		float framerate = 1/24f;
-		spriteSheet = new TextureAtlas(Gdx.files.internal("sprites/characters/ninja1.txt"));
+		spriteSheet = new TextureAtlas(Gdx.files.internal(sheetFile));
 		
 		upAnim = new Animation(framerate, spriteSheet.findRegions("up"));
 		upAnim.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
@@ -198,6 +200,7 @@ public Player(int player, Vector2 position, World world){
 	}
 	
 	public void Update(){
+		killed = data.Dead();
 		UpdatePlayerData();
 		UpdateActiveBombs();
 	}

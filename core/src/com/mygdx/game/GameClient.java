@@ -66,7 +66,6 @@ public class GameClient implements Screen {
 	Texture img;
 	
 	private static boolean renderWorld = false;
-
 	
 	private static float timeStep = 1f / 60f; // Interval of physics simulation
 	
@@ -131,8 +130,8 @@ public class GameClient implements Screen {
 	
 	
 	private Client client;
+	private static final String hostIP = "localhost";
 	private static MovePlayer mp = new MovePlayer();
-	
 	private static FPSLogger fps = new FPSLogger();
 
 	
@@ -230,7 +229,7 @@ public class GameClient implements Screen {
 		
 		
 		try {
-			client.connect(5000, "localhost", NConfig.PORT);
+			client.connect(5000, hostIP, NConfig.PORT);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -335,18 +334,18 @@ public class GameClient implements Screen {
 		playerAnim = new PlayerAnimator[4];
 		
 		for(int i = 0; i< 4; i++)
-			playerAnim[i] = CreatePlayerAnimation(i);
+			playerAnim[i] = CreatePlayerAnimation(i + 1);
 		
 	}
 	
 	private PlayerAnimator CreatePlayerAnimation(int playernumber){
 
-		//TODO: Implement different sheets for different players
+		String sheetFile = "sprites/characters/ninja" + playernumber + ".txt";
 		
 		PlayerAnimator p = new PlayerAnimator();
 		
 		float framerate = 1/24f;
-		p.spriteSheet = new TextureAtlas(Gdx.files.internal("sprites/characters/ninja1.txt"));
+		p.spriteSheet = new TextureAtlas(Gdx.files.internal(sheetFile));
 		
 		p.upAnim = new Animation(framerate, p.spriteSheet.findRegions("up"));
 		p.upAnim.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);

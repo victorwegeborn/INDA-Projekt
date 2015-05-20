@@ -10,13 +10,14 @@ public class ItemPlacer {
 	public static void SpawnRandomPowerUp(Vector2 position){
 		Random r = new Random();
 		int i = r.nextInt(100);
+		System.out.println("Randomized value: " + i);
 		if(i < B2DVars.DROP_RATE){
 				if(i < B2DVars.DROP_RATE / 2){
 				PlacePowerUp(B2DVars.BOMB_POWERUP, position);
 				return;
 				}
 				
-				if(i >= B2DVars.DROP_RATE / 2){
+				if(i >= (B2DVars.DROP_RATE / 2 + 1)){
 				PlacePowerUp(B2DVars.FIRE_POWERUP, position);
 				return;
 				}
@@ -31,6 +32,7 @@ public class ItemPlacer {
 	 */
 	
 	public static void PlacePowerUp(int type, Vector2 position){
+		System.out.println("Item placed!");
 		
 		switch(type){
 		

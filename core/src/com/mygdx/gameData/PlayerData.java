@@ -91,4 +91,5 @@ public class PlayerData extends ObjectData{
 	public int GetBombCapacity(){
 		return bombCapacity;
 	}
+	
 }

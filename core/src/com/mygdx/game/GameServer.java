@@ -66,13 +66,14 @@ public class GameServer implements Screen {
 	Texture img;
 	private static boolean renderWorld = false;
 	
+	
 	public static World WORLD; // Physics world
 	private static ContactHandler contactHandler = new ContactHandler();
 	private static WorldQuery worldQuery;
 	private static FireRayCastHandler fireRayCast = new FireRayCastHandler();
 	
 	private Player player;
-	private static Array<Player> allPlayers = new Array<Player>();
+	private static ArrayList<Player> allPlayers = new ArrayList<Player>();
 	
 	public static Body FRICTION; // Body used to maintain friction between players and floor
 	private static float timeStep = 1f / 60f; // Interval of physics simulation
@@ -109,25 +110,6 @@ public class GameServer implements Screen {
 	private TextureRegion boxSprite;
 	
 	private TiledMapTileLayer wallLayer;
-	
-	private float ShakeFactor;
-	//
-
-	
-//	// Items
-//	private static int pooledBombs = 60;
-//	private static Vector2 bombPoolPosition = new Vector2(-100, -100);
-//	private static Bomb[] bombs = new Bomb[pooledBombs];
-//	
-//	private static int pooledFire = 100; 
-//	private static Vector2 firePoolPosition = new Vector2(-200, -200);
-//	private static Fire[] fires = new Fire[pooledFire];
-//	
-//	private static int pooledPowerUps = 40; 
-//	private static Vector2 powPoolPosition = new Vector2(200, 200);
-//	private static BombPowerUp[] bombPows = new BombPowerUp[pooledPowerUps];
-//	private static FirePowerUp[] firePows = new FirePowerUp[pooledPowerUps];
-	//
 	
 	private MovePlayer[] currentMovePlayer;
 	
@@ -170,7 +152,7 @@ public class GameServer implements Screen {
 	
 		CreateWorld();
 		
-		CreatePlayers(2);
+		CreatePlayers(4);
 	
 		InitializeItemPools();
 		
@@ -224,7 +206,7 @@ public class GameServer implements Screen {
 				player = ((NPlayerConnection) c).player - 1;	
 				}
 					
-				if(player > allPlayers.size)
+				if(player > allPlayers.size())
 					return;
 				
 				if(o instanceof MovePlayer) 		
@@ -276,55 +258,12 @@ public class GameServer implements Screen {
 	 * for accurate physics calculation
 	 */
 	private void CreatePlayers(int numberOfPlayers){
-		
-		if(numberOfPlayers < 1)
-			numberOfPlayers = 1;
-		
-		if(numberOfPlayers > 4)
-			numberOfPlayers = 4;
-		
+		//Init the update field
 		currentMovePlayer = new MovePlayer[numberOfPlayers];
-		
 		for(int i = 0; i < numberOfPlayers; i++)
 			currentMovePlayer[i] = new MovePlayer();
 		
-		// Join players to friction floor----***
-		FrictionJointDef def = new FrictionJointDef();
-		def.bodyA = FRICTION;
- 		def.maxForce = 2f;// set something sensible;
-		def.maxTorque = 2f;// set something sensible;
-		FrictionJoint joint;
-		// ----------------------------------***
-		
-		Vector2 spawnPos;
-		
-		for(int i = 0; i < numberOfPlayers; i++){
-			
-			//Set spawn position for players 1 - 4
-			switch(i){
-			case 0:
-				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(3, 1));
-				break;
-			case 1:
-				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(16, 8));
-				break;
-			case 2:
-				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(16, 1));
-				break;
-			case 3:
-				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(3, 8));
-				break;
-			default:
-				spawnPos = new Vector2(3,2);
-			}
-			
-			
-			allPlayers.add(new Player(i + 1, spawnPos, WORLD));
-			def.bodyB = allPlayers.get(i).body;
-			joint = (FrictionJoint) WORLD.createJoint(def);
-		}
-		
-		player = allPlayers.get(0);  
+		allPlayers = PlayerCreator.CreatePlayers(numberOfPlayers, FRICTION, WORLD);
 		
 	}
 	
@@ -522,7 +461,7 @@ public class GameServer implements Screen {
 				b.Update(dt);
 			
 			if(b.detonate){
-				System.out.println("detonatePosition: " + b.detonatePosition + " body position" + b.body.getPosition());
+				//System.out.println("detonatePosition: " + b.detonatePosition + " body position" + b.body.getPosition());
 				DetonateBomb(b);
 			}
 		}
@@ -619,7 +558,7 @@ public class GameServer implements Screen {
 	private void MovePlayer(Player p, MovePlayer moveData){
 		
 	switch(moveData.direction){
-		case Input.Keys.A: System.out.println("[SERVER] CALCULATE TO MOVE LEFT");
+		case Input.Keys.A: //System.out.println("[SERVER] CALCULATE TO MOVE LEFT");
 		if(!p.Dead()){
 			p.SetState(State.Left);
 			if (Math.abs(p.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
@@ -627,7 +566,7 @@ public class GameServer implements Screen {
 		}
 	
 		break;
-		case Input.Keys.D: System.out.println("[SERVER] CALCULATE TO MOVE RIGHT");
+		case Input.Keys.D: //System.out.println("[SERVER] CALCULATE TO MOVE RIGHT");
 		if(!p.Dead()){
 			p.SetState(State.Right);
 
@@ -636,7 +575,7 @@ public class GameServer implements Screen {
 		}	
 	
 		break;
-		case Input.Keys.W: System.out.println("[SERVER] CALCULATE TO MOVE UP");
+		case Input.Keys.W: //System.out.println("[SERVER] CALCULATE TO MOVE UP");
 		if(!p.Dead()){
 			p.SetState(State.Up);
 			
@@ -644,7 +583,7 @@ public class GameServer implements Screen {
 				p.body.applyForceToCenter(new Vector2(0, MOVE_FORCE), true);
 			}
 		break;
-		case Input.Keys.S: System.out.println("[SERVER] CALCULATE TO MOVE DOWN");
+		case Input.Keys.S: //System.out.println("[SERVER] CALCULATE TO MOVE DOWN");
 		if(!p.Dead()){
 			p.SetState(State.Down);
 

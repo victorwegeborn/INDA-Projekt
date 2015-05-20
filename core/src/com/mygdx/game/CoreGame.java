@@ -52,7 +52,7 @@ public class CoreGame implements Screen {
 	private static FireRayCastHandler fireRayCast = new FireRayCastHandler();
 	
 	private Player player;
-	private static Array<Player> allPlayers = new Array<Player>();
+	private static ArrayList<Player> allPlayers = new ArrayList<Player>();
 	
 	public static Body FRICTION; // Body used to maintain friction between players and floor
 	private static float timeStep = 1f / 60f; // Interval of physics simulation
@@ -121,7 +121,7 @@ public class CoreGame implements Screen {
 	
 		CreateWorld();
 		
-		CreatePlayers(2);
+		CreatePlayers(4);
 	
 		InitializeItemPools();
 		
@@ -170,43 +170,9 @@ public class CoreGame implements Screen {
 		if(numberOfPlayers > 4)
 			numberOfPlayers = 4;
 		
-		// Join players to friction floor----***
-		FrictionJointDef def = new FrictionJointDef();
-		def.bodyA = FRICTION;
- 		def.maxForce = 2f;// set something sensible;
-		def.maxTorque = 2f;// set something sensible;
-		FrictionJoint joint;
-		// ----------------------------------***
+		allPlayers = PlayerCreator.CreatePlayers(numberOfPlayers, FRICTION, WORLD);
 		
-		Vector2 spawnPos;
-		
-		for(int i = 0; i < numberOfPlayers; i++){
-			
-			//Set spawn position for players 1 - 4
-			switch(i){
-			case 0:
-				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(3, 1));
-				break;
-			case 1:
-				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(16, 8));
-				break;
-			case 2:
-				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(16, 1));
-				break;
-			case 3:
-				spawnPos = CoordinateConverter.quantizePositionToGrid(new Vector2(3, 8));
-				break;
-			default:
-				spawnPos = new Vector2(3,2);
-			}
-			
-			
-			allPlayers.add(new Player(i + 1, spawnPos, WORLD));
-			def.bodyB = allPlayers.get(i).body;
-			joint = (FrictionJoint) WORLD.createJoint(def);
-		}
-		
-		player = allPlayers.get(0);  
+		player = allPlayers.get(3);
 		
 	}
 	
@@ -374,7 +340,7 @@ public class CoreGame implements Screen {
 
 		
 		//Debug-tools, uncomment for visual aid / bug-hunting:
-		b2dr.render(WORLD, camera.combined);
+		//b2dr.render(WORLD, camera.combined);
 		//RenderSquares();
 		//PrintAllContacts();
 		//fps.log();
@@ -399,7 +365,7 @@ public class CoreGame implements Screen {
 				b.Update(dt);
 			
 			if(b.detonate){
-				System.out.println("detonatePosition: " + b.detonatePosition + " body position" + b.body.getPosition());
+				//System.out.println("detonatePosition: " + b.detonatePosition + " body position" + b.body.getPosition());
 				DetonateBomb(b);
 			}
 		}
@@ -575,9 +541,6 @@ public class CoreGame implements Screen {
 								
 				ItemPlacer.SetFire(x, y, WORLD);
 
-				if(Gdx.input.isKeyPressed(Input.Keys.F)){
-					System.out.println("position x: " + x + " y:" + y);
-				}
 				
 				Fire fireL = null;
 				Fire fireR = null;
@@ -602,7 +565,6 @@ public class CoreGame implements Screen {
 							if(!obstacleHitUp){
 								WORLD.rayCast(fRay, new Vector2(rayx, rayy + f - 1), new Vector2(rayx, rayy + f));
 								obstacleHitUp = fRay.hasCollided && Math.abs(fRay.hitPoint.y - (rayy + f - 1)) < 1;
-								DrawSquare(rayx, rayy + f, Color.WHITE);
 
 								
 								if(!obstacleHitUp){
@@ -617,9 +579,7 @@ public class CoreGame implements Screen {
 								
 								if(fRay.hitPoint != null)
 									obstacleHitDown = fRay.hasCollided && Math.abs(fRay.hitPoint.y - (rayy - f + 1)) < 1;
-								
-								DrawSquare(rayx, rayy - f, Color.WHITE);
-								
+																
 							
 								if(!obstacleHitDown){
 									fireD = ItemPlacer.SetFire(x, y - f, WORLD);
@@ -634,8 +594,6 @@ public class CoreGame implements Screen {
 								if(fRay.hitPoint != null)
 									obstacleHitRight = fRay.hasCollided && Math.abs(fRay.hitPoint.x - (rayx + f - 1)) < 1;
 								
-								DrawSquare(rayx + f, rayy, Color.WHITE);
-
 							
 								if(!obstacleHitRight){
 									fireR = ItemPlacer.SetFire(x + f, y, WORLD);
@@ -650,8 +608,6 @@ public class CoreGame implements Screen {
 								if(fRay.hitPoint != null)
 									obstacleHitLeft = fRay.hasCollided && Math.abs(fRay.hitPoint.x - (rayx - f + 1)) < 1;
 								
-								DrawSquare(rayx - f, rayy, Color.WHITE);
-
 							
 								if(!obstacleHitLeft){	
 									fireL = ItemPlacer.SetFire(x - f, y, WORLD);
