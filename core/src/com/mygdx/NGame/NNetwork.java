@@ -60,32 +60,7 @@ public class NNetwork {
 		kryo.register(java.util.ArrayList.class);
 		kryo.register(ShakeUpdate.class);
 		kryo.register(WinScreenUpdate.class);
-<<<<<<< HEAD
-
-	
 		
-		
-		
-		
-		//Probably obsolete, stored for reference:
-//		kryo.register(WorldUpdate.class);
-//		kryo.register(com.badlogic.gdx.physics.box2d.World.class);
-//		kryo.register(com.badlogic.gdx.physics.box2d.Transform.class);
-//		kryo.register(com.badlogic.gdx.physics.box2d.MassData.class);
-//		kryo.register(com.badlogic.gdx.physics.box2d.BodyDef.class);
-//		kryo.register(com.badlogic.gdx.physics.box2d.BodyDef.BodyType.class);
-//		kryo.register(com.badlogic.gdx.physics.box2d.Filter.class);
-//		kryo.register(com.badlogic.gdx.physics.box2d.Shape.Type.class);
-//		kryo.register(com.badlogic.gdx.physics.box2d.JointDef.class);
-//		kryo.register(com.badlogic.gdx.utils.LongMap.class);
-//		kryo.register(long[].class);
-//		kryo.register(Object[].class);
-//		kryo.register(com.badlogic.gdx.physics.box2d.Body.class);
-//		kryo.register(com.badlogic.gdx.utils.Array.class);
-//		kryo.register(com.badlogic.gdx.physics.box2d.Fixture.class);
-
-=======
->>>>>>> origin/master
 	}
 	
 	public static class RequestConnection {}
