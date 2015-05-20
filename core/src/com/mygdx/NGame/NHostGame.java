@@ -16,7 +16,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.mygdx.gameRefactor.GameRefactor;
 
 public class NHostGame implements Screen {
 	
@@ -188,8 +187,8 @@ public class NHostGame implements Screen {
 				continue;
 			if(selected[i] == 1) {
 				switch(i) {
-				case 0: game.setScreen(new GameRefactor(game));
-						break;
+			  //case 0: game.setScreen(new GameRefactor(game));
+			  //		break;
 				case 1: game.setScreen(new NMainMenu(game));
 						break;
 				}

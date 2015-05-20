@@ -64,6 +64,7 @@ public class NNetwork {
 		kryo.register(com.badlogic.gdx.utils.Array.class);
 		kryo.register(java.util.ArrayList.class);
 		kryo.register(ShakeUpdate.class);
+		kryo.register(WinScreenUpdate.class);
 
 	
 		
@@ -100,6 +101,7 @@ public class NNetwork {
 	public static class BombUpdate { public ArrayList<BombData> bombs; }
 	public static class ItemUpdate { public ArrayList<ItemData> items; }
 	public static class ShakeUpdate { public float shakeFactor; }
+	public static class WinScreenUpdate { public int playerNr; }
 	
 	
 }

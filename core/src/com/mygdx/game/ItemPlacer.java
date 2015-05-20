@@ -32,7 +32,7 @@ public class ItemPlacer {
 	 */
 	
 	public static void PlacePowerUp(int type, Vector2 position){
-		System.out.println("Item placed!");
+		//System.out.println("Item placed!");
 		
 		switch(type){
 		

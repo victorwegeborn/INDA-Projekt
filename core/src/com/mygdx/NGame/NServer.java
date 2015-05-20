@@ -10,8 +10,7 @@ import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.minlog.Log;
 import com.mygdx.NGame.NNetwork.*;
-import com.mygdx.gameRefactor.GameAlgo;
-import com.mygdx.gameRefactor.GameRefactor;
+
 
 /**
  * NServer

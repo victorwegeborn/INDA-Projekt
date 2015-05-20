@@ -54,6 +54,7 @@ import com.mygdx.NGame.NNetwork.ItemUpdate;
 import com.mygdx.NGame.NNetwork.MovePlayer;
 import com.mygdx.NGame.NNetwork.PlayerUpdate;
 import com.mygdx.NGame.NNetwork.ShakeUpdate;
+import com.mygdx.NGame.NNetwork.WinScreenUpdate;
 import com.mygdx.game.Player.State;
 import com.mygdx.gameData.BombData;
 import com.mygdx.gameData.BoxData;
@@ -96,6 +97,7 @@ public class GameClient implements Screen {
 	private Texture mapSprite;
 	private TextureRegion boxSprite;
 	private Animation bombAnim, firePowAnim, bombPowAnim;
+	private int showWinScreen;
 	//
 	
 	//Animation for a player
@@ -222,6 +224,12 @@ public class GameClient implements Screen {
 					//System.out.println("Screen shake received!");
 					ShakeUpdate s = (ShakeUpdate)o;
 					shake.shake(s.shakeFactor);
+				}
+				
+				if(o instanceof WinScreenUpdate){
+					System.out.println("Win screen received!");
+					WinScreenUpdate w = (WinScreenUpdate)o;
+					showWinScreen = w.playerNr;
 				}
 
 			}
@@ -465,7 +473,32 @@ public class GameClient implements Screen {
 		
 		batch_tiledMapRenderer.render(topLayers);
 		
+		if(showWinScreen > 0){
+			Texture winScreen;	
+			System.out.println(showWinScreen);
 
+			switch(showWinScreen){
+			case 1:
+				winScreen = GameManager.winPlayer1;
+				break;
+			case 2:
+				winScreen = GameManager.winPlayer2;
+				break;
+			case 3:
+				winScreen = GameManager.winPlayer3;
+				break;
+			case 4:
+				winScreen = GameManager.winPlayer4;
+				break;
+			default:
+				winScreen = GameManager.winPlayer1;
+		}
+
+			batch.begin();
+			batch.draw(winScreen, 6.5f, 3.5f, 192 / B2DVars.PPM, 64 / B2DVars.PPM);
+			batch.end();
+		
+		}
 		
 		//Debug-tools, uncomment for visual aid / bug-hunting:
 		//b2dr.render(WORLD, camera.combined);

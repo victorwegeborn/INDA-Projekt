@@ -52,7 +52,7 @@ public class CoreGame implements Screen {
 	private static FireRayCastHandler fireRayCast = new FireRayCastHandler();
 	
 	private Player player;
-	private static ArrayList<Player> allPlayers = new ArrayList<Player>();
+	//private static ArrayList<Player> allPlayers = new ArrayList<Player>();
 	
 	public static Body FRICTION; // Body used to maintain friction between players and floor
 	private static float timeStep = 1f / 60f; // Interval of physics simulation
@@ -92,7 +92,7 @@ public class CoreGame implements Screen {
 	//
 
 	
-	
+	private boolean resetGame;
 	
 	// Debug-variables
 	private static FPSLogger fps = new FPSLogger();
@@ -121,7 +121,7 @@ public class CoreGame implements Screen {
 	
 		CreateWorld();
 		
-		CreatePlayers(4);
+		CreatePlayers(2);
 	
 		InitializeItemPools();
 		
@@ -170,9 +170,9 @@ public class CoreGame implements Screen {
 		if(numberOfPlayers > 4)
 			numberOfPlayers = 4;
 		
-		allPlayers = PlayerCreator.CreatePlayers(numberOfPlayers, FRICTION, WORLD);
+		GameManager.allPlayers = PlayerCreator.CreatePlayers(numberOfPlayers, FRICTION, WORLD);
 		
-		player = allPlayers.get(3);
+		player = GameManager.allPlayers.get(0);
 		
 	}
 	
@@ -265,7 +265,7 @@ public class CoreGame implements Screen {
 		MapBodyBuilder.buildShapes(tileMap, B2DVars.PPM, WORLD, B2DVars.BIT_WALL, "wall", false);  //Build walls
 		MapRandomizer mapRand = new MapRandomizer();
 		
-		boxLayer = mapRand.fillMap(WORLD, tileMap, 50); //Construct random boxes
+		boxLayer = mapRand.fillMap(WORLD, tileMap, B2DVars.BOX_DENSITY); //Construct random boxes
 		boxLayer.setVisible(false);
 		tileMap.getLayers().add(boxLayer);
 		boxes = mapRand.boxes;
@@ -294,8 +294,11 @@ public class CoreGame implements Screen {
 
 	@Override
 	public void render(float dt) {
+		
+		if(!GameManager.inputBlocked){
 		HandleInputs();
-		HandleInputsP2(); // Temp local multiplayer 
+		HandleInputsP2(); // Temp local multiplayer
+		}
 		
 		// Update statetime and physics
 		stateTime += Gdx.graphics.getDeltaTime();
@@ -329,7 +332,7 @@ public class CoreGame implements Screen {
 		RenderPlayers();
 		
 		RenderFire();
-		
+			
 		batch.end();
 		//Batch END-----------------------------------------------------***
 		
@@ -344,8 +347,42 @@ public class CoreGame implements Screen {
 		//RenderSquares();
 		//PrintAllContacts();
 		//fps.log();
-
-
+		
+		if(GameManager.PlayerWon()){
+			GameManager.inputBlocked = true;
+			GameManager.sleepTimer += dt;
+			Texture winScreen;
+			
+			switch(GameManager.playerWinner){
+			case 1:
+				winScreen = GameManager.winPlayer1;
+				break;
+			case 2:
+				winScreen = GameManager.winPlayer2;
+				break;
+			case 3:
+				winScreen = GameManager.winPlayer3;
+				break;
+			case 4:
+				winScreen = GameManager.winPlayer4;
+				break;
+			default:
+				winScreen = GameManager.winPlayer1;
+			}
+			
+			batch.begin();
+			batch.draw(winScreen, 6.5f, 3.5f, 192 / B2DVars.PPM, 64 / B2DVars.PPM);
+			batch.end();
+			
+			if(GameManager.sleepTimer > B2DVars.LEVEL_RESET_SLEEPTIME)
+				boxes = GameManager.ResetGame(tileMap, WORLD, boxes);
+		}
+		
+		if(resetGame){
+			boxes = GameManager.ResetGame(tileMap, WORLD, boxes);
+			resetGame = false;
+		}
+		
 	}
 	
 	/**
@@ -355,7 +392,7 @@ public class CoreGame implements Screen {
 	 * @param dt deltatime for updates as float
 	 */
 	private void UpdateGameObjects(float dt){
-		for(Player p : allPlayers){
+		for(Player p : GameManager.allPlayers){
 			if(!p.Dead())
 				p.Update();	
 		}
@@ -386,7 +423,7 @@ public class CoreGame implements Screen {
 		for(Box b : boxes)
 			b.Update(dt);	
 	}
-	
+		
 	private void RenderSquares(){
 		sRend.setProjectionMatrix(camera.combined);
 		sRend.updateMatrices();
@@ -402,8 +439,7 @@ public class CoreGame implements Screen {
 	private void RenderBoxes(){
 		for(Box b : boxes){
 			if(b.IsActive())
-				batch.draw(boxSprite, b.body.getPosition().x, b.body.getPosition().y, 1, 1);
-			
+				batch.draw(boxSprite, b.body.getPosition().x, b.body.getPosition().y, 1, 1);		
 		}
 	}
 
@@ -411,7 +447,7 @@ public class CoreGame implements Screen {
 	 * Renders all players that are not dead
 	 */
 	private void RenderPlayers(){
-		for(Player p : allPlayers){
+		for(Player p : GameManager.allPlayers){
 		if(!p.Dead()){
 			batch.draw(p.Animation().getKeyFrame(stateTime, true),
 					p.body.getPosition().x - 0.5f,
@@ -649,7 +685,7 @@ public class CoreGame implements Screen {
 	
 	
 	private void HandleInputsP2(){
-		Player p = allPlayers.get(1);
+		Player p = GameManager.allPlayers.get(1);
 		if (Gdx.input.isKeyJustPressed(Input.Keys.T))
 			if(!p.Dead()){
 				ItemPlacer.DropBomb(p);
@@ -702,6 +738,8 @@ public class CoreGame implements Screen {
 	
 	private void HandleInputs() {
 		
+		if(Gdx.input.isKeyJustPressed(Input.Keys.R))
+			resetGame = true;
 
 		if (Gdx.input.isKeyPressed(Input.Keys.Q))
 			Gdx.app.exit();

@@ -53,6 +53,7 @@ import com.mygdx.NGame.NNetwork.ItemUpdate;
 import com.mygdx.NGame.NNetwork.ShakeUpdate;
 import com.mygdx.NGame.NPlayer;
 import com.mygdx.NGame.NNetwork.BoxUpdate;
+import com.mygdx.NGame.NNetwork.WinScreenUpdate;
 import com.mygdx.NGame.NNetwork.MovePlayer;
 import com.mygdx.game.Player.State;
 import com.mygdx.gameData.BombData;
@@ -64,7 +65,8 @@ import com.mygdx.gameData.PlayerData;
 public class GameServer implements Screen {
 	SpriteBatch batch;
 	Texture img;
-	private static boolean renderWorld = false;
+	
+	private static boolean renderWorld = true;
 	
 	
 	public static World WORLD; // Physics world
@@ -73,7 +75,8 @@ public class GameServer implements Screen {
 	private static FireRayCastHandler fireRayCast = new FireRayCastHandler();
 	
 	private Player player;
-	private static ArrayList<Player> allPlayers = new ArrayList<Player>();
+	private WinScreenUpdate winUpdate = new WinScreenUpdate();
+	private boolean sentWinUpdate;
 	
 	public static Body FRICTION; // Body used to maintain friction between players and floor
 	private static float timeStep = 1f / 60f; // Interval of physics simulation
@@ -113,6 +116,7 @@ public class GameServer implements Screen {
 	
 	private MovePlayer[] currentMovePlayer;
 	
+	private boolean resetGame;
 	
 	// Debug-variables
 	private static FPSLogger fps = new FPSLogger();
@@ -152,7 +156,7 @@ public class GameServer implements Screen {
 	
 		CreateWorld();
 		
-		CreatePlayers(4);
+		CreatePlayers(2);
 	
 		InitializeItemPools();
 		
@@ -206,13 +210,13 @@ public class GameServer implements Screen {
 				player = ((NPlayerConnection) c).player - 1;	
 				}
 					
-				if(player > allPlayers.size())
+				if(player > GameManager.allPlayers.size())
 					return;
 				
-				if(o instanceof MovePlayer) 		
+				if(o instanceof MovePlayer) 	
 					currentMovePlayer[player] = (MovePlayer)o;
-
-						return;
+						
+					return;
 					}
 				
 			});
@@ -263,7 +267,7 @@ public class GameServer implements Screen {
 		for(int i = 0; i < numberOfPlayers; i++)
 			currentMovePlayer[i] = new MovePlayer();
 		
-		allPlayers = PlayerCreator.CreatePlayers(numberOfPlayers, FRICTION, WORLD);
+		GameManager.allPlayers = PlayerCreator.CreatePlayers(numberOfPlayers, FRICTION, WORLD);
 		
 	}
 	
@@ -404,9 +408,6 @@ public class GameServer implements Screen {
 
 		camera.update();
 		batch.setProjectionMatrix(camera.combined);
-
-		
-
 		
 		batch_tiledMapRenderer.setView(camera);
 		batch_tiledMapRenderer.render(bottomLayers);
@@ -439,6 +440,56 @@ public class GameServer implements Screen {
 		//RenderSquares();
 		//PrintAllContacts();
 		//fps.log();
+		
+
+		if(GameManager.PlayerWon()){
+			GameManager.inputBlocked = true;
+			GameManager.sleepTimer += dt;
+			winUpdate.playerNr = GameManager.playerWinner;
+			
+			if(!sentWinUpdate){
+				server.sendToAllTCP(winUpdate);
+				sentWinUpdate = true;
+			}
+			
+			if(renderWorld){
+
+			Texture winScreen;
+			
+			switch(GameManager.playerWinner){
+			case 1:
+				winScreen = GameManager.winPlayer1;
+				break;
+			case 2:
+				winScreen = GameManager.winPlayer2;
+				break;
+			case 3:
+				winScreen = GameManager.winPlayer3;
+				break;
+			case 4:
+				winScreen = GameManager.winPlayer4;
+				break;
+			default:
+				winScreen = GameManager.winPlayer1;
+			}
+			batch.begin();
+			batch.draw(winScreen, 6.5f, 3.5f, 192 / B2DVars.PPM, 64 / B2DVars.PPM);
+			batch.end();
+			
+			}
+			
+			if(GameManager.sleepTimer > B2DVars.LEVEL_RESET_SLEEPTIME)
+				boxes = GameManager.ResetGame(tileMap, WORLD, boxes);
+				winUpdate.playerNr = GameManager.playerWinner;
+				server.sendToAllTCP(winUpdate);
+				sentWinUpdate = false;
+		}
+		
+		if(resetGame){
+			boxes = GameManager.ResetGame(tileMap, WORLD, boxes);
+			resetGame = false;
+		}
+		
 		}
 
 	}
@@ -451,7 +502,7 @@ public class GameServer implements Screen {
 	 */
 	private void UpdateGameObjects(float dt){
 		
-		for(Player p : allPlayers){
+		for(Player p : GameManager.allPlayers){
 			if(!p.Dead())
 				p.Update();	
 		}
@@ -498,7 +549,7 @@ public class GameServer implements Screen {
 		//**PLAYERS (PlayerUpdate)**
 		PlayerUpdate playerUpdate = new PlayerUpdate();
 		ArrayList<PlayerData> activePlayers = new ArrayList<PlayerData>();
-		for(Player p : allPlayers){
+		for(Player p : GameManager.allPlayers){
 			if(!p.Dead())
 				activePlayers.add((PlayerData)p.body.getUserData());
 		}
@@ -547,7 +598,7 @@ public class GameServer implements Screen {
 	}
 	
 	private void CheckAllPlayerMovement(){
-		for(Player p : allPlayers){
+		for(Player p : GameManager.allPlayers){
 			if(!p.Dead())
 				MovePlayer(p, currentMovePlayer[p.GetPlayerNumber() - 1]);
 		}
@@ -556,7 +607,9 @@ public class GameServer implements Screen {
 
 	
 	private void MovePlayer(Player p, MovePlayer moveData){
-		
+	
+	if(!GameManager.inputBlocked){
+	
 	switch(moveData.direction){
 		case Input.Keys.A: //System.out.println("[SERVER] CALCULATE TO MOVE LEFT");
 		if(!p.Dead()){
@@ -596,6 +649,7 @@ public class GameServer implements Screen {
 		if(((MovePlayer) moveData).bomb == Input.Keys.SPACE)
 			ItemPlacer.DropBomb(p);		
 	}
+	}
 	
 	private void RenderSquares(){
 		sRend.setProjectionMatrix(camera.combined);
@@ -621,7 +675,7 @@ public class GameServer implements Screen {
 	 * Renders all players that are not dead
 	 */
 	private void RenderPlayers(){
-		for(Player p : allPlayers){
+		for(Player p : GameManager.allPlayers){
 		if(!p.GetData().Dead()){
 			batch.draw(p.Animation().getKeyFrame(stateTime, true),
 					p.body.getPosition().x - 0.5f,

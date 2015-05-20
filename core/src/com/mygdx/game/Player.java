@@ -44,6 +44,7 @@ private ArrayList<Bomb> activeBombs;
 private Iterator bombIterator;
 private int firePower;
 private int speedCount;
+private Vector2 spawnPosition;
 
 public boolean immortal;
 
@@ -67,7 +68,7 @@ public Player(int player, Vector2 position, World world){
 	
 	immortal = false;
 	
-	Vector2 spawnPosition = CoordinateConverter.quantizePositionToGrid(position);
+	spawnPosition = CoordinateConverter.quantizePositionToGrid(position);
 	droppedBombs = 0;
 	bombCapacity = 1;
 	firePower = 1;
@@ -203,6 +204,16 @@ public Player(int player, Vector2 position, World world){
 		killed = data.Dead();
 		UpdatePlayerData();
 		UpdateActiveBombs();
+	}
+	
+	public void Reset(){
+		data.SetActive(true);
+		killed = false;
+		firePower = 1;
+		bombCapacity = 1;
+		body.setActive(true);
+		body.setTransform(spawnPosition, 0);
+		activeBombs.clear();
 	}
 	
 	

@@ -22,7 +22,7 @@ public final class B2DVars {
 	
 
 	
-	//State integer representations
+	//Integer representations
 	public static final int PLAYER_UP = 1;
 	public static final int PLAYER_DOWN = 2;
 	public static final int PLAYER_LEFT = 3;
@@ -40,11 +40,17 @@ public final class B2DVars {
 	public static final int BOMB_POWERUP = 1;
 	public static final int FIRE_POWERUP = 2;
 	
+	public static final int BOXLAYER_INDEX = 5;
+
+	
+	
 	
 	//Game config values:
 	public static final boolean SCREEN_SHAKE = true;
 	public static final float SHAKE_TIME = 0.1f;
 	public static final float SHAKE_AMPLITUDE = 0.1f;  //Default 0.1f
+	public static final int BOX_DENSITY = 50;
+	public static final int LEVEL_RESET_SLEEPTIME = 4;
 	
 
 	
