@@ -42,13 +42,14 @@ public class GameServer {
 		
 		playerCount = 0; 	//Host is included by default and flagged ready
 		playerReady[0] = true;
-		
+		lobby.PlayerReady(1);
 	}
 	
 private void SetupServer(){
 		
 		server = new Server() {
-			protected Connection newConnection () {				
+			protected Connection newConnection () {	
+				
 				NPlayerConnection c = new NPlayerConnection();
 				int assignedPlayerNumber = 0;
 				
@@ -75,10 +76,16 @@ private void SetupServer(){
 		server.addListener(new Listener() {
 					
 			public void connected (Connection c) {
+				if(playerCount > 3 || gameStarted)
+					c.close();
+				
 				if(c instanceof NPlayerConnection){
 				Log.info("[SERVER] player connecting");
 				NPlayerConnection playercon = (NPlayerConnection)c;
+				
+				
 				lobby.PlayerConnected(playercon.player);
+				lobby.PlayerReady(playercon.player + 1);
 				LobbyUpdate lobbyUpdate = new LobbyUpdate();
 				lobbyUpdate.playerStatus = lobby.GetLobbyPlayerStatus();
 				server.sendToAllTCP(lobbyUpdate);
@@ -94,6 +101,7 @@ private void SetupServer(){
 				LobbyUpdate lobbyUpdate = new LobbyUpdate();
 				lobbyUpdate.playerStatus = lobby.GetLobbyPlayerStatus();
 				server.sendToAllTCP(lobbyUpdate);
+				gameEngine.RemovePlayer(player.player);
 				}
 			}
 
@@ -107,7 +115,7 @@ private void SetupServer(){
 				if(o instanceof MovePlayer){
 					Log.info("Move data received");
 					if(gameStarted)
-					gameEngine.currentMovePlayer[player] = (com.mygdx.NGame.NNetwork.MovePlayer)o;
+					gameEngine.currentMovePlayer[player - 1] = (com.mygdx.NGame.NNetwork.MovePlayer)o;
 					
 					return;
 					}
@@ -152,6 +160,7 @@ private void SetupServer(){
 	}
 
 	public void StartGame(){
+		gameStarted = true;
 		server.sendToAllTCP(new StartGame());
 		hostServer = true;
 		RunGame();
@@ -168,7 +177,7 @@ private void SetupServer(){
 	 * concurrently at a pace of ~ 60 fps
 	 */
 	public void RunGame(){
-		gameEngine.CreatePlayers(playerCount + 1); // + 1 to include host
+		gameEngine.CreatePlayers(playerCount); 
 
 		gameStarted = true;
 		
@@ -191,8 +200,5 @@ private void SetupServer(){
 		
 		
 	}
-
-
-	
 
 }

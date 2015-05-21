@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -28,6 +29,8 @@ public class MainMenu implements Screen {
 	private Stage stage;
 	
 	private OrthographicCamera camera;
+	private static float cameraZoom = 0f;
+	
 	private SpriteBatch batch;
 	private TextureRegion[] regions;
 	private Texture topLogo;
@@ -38,7 +41,12 @@ public class MainMenu implements Screen {
 	private static float logoScale = 1.5f;
 	private static float buttonScale = 1.5f;
 	
+	private static final float fxTime = 5f;
+	private float fxTimer;
+	private boolean distortLogo;
 	
+	private static final float distortTime = 0.05f;
+	private float distortTimer;
 	
 	
 	private float centerX;
@@ -54,13 +62,17 @@ public class MainMenu implements Screen {
 	public MainMenu(final MainGame game) {
 		this.game = game;
 		stateTime = 0f;
+		fxTimer = 0f;
+		distortTimer = 0f;
 		
 		select = SoundManager.walk1;
 		
 		camera = new OrthographicCamera(B2DVars.VIRTUAL_WIDTH, B2DVars.VIRTUAL_HEIGHT);
 		Viewport viewport = new StretchViewport(B2DVars.VIRTUAL_WIDTH, B2DVars.VIRTUAL_HEIGHT, camera);
-		camera.zoom = 50f;
+		camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		camera.zoom += cameraZoom;
 		camera.update();
+
 		
 		logoPos = new Vector2(Gdx.graphics.getWidth()/2 - 280, Gdx.graphics.getHeight()/2 - 48);
 		hostPos = new Vector2(Gdx.graphics.getWidth()/2 - 64, Gdx.graphics.getHeight()/2 - 48);
@@ -78,18 +90,10 @@ public class MainMenu implements Screen {
 		topLogo = new Texture(Gdx.files.internal("sprites/texts/mainlogobw.png"));
 		batch = new SpriteBatch();
 		batch.setProjectionMatrix(camera.combined);
+		//camera.zoom += cameraZoom;
+		//camera.position.set(327, 296, 0);
+		camera.update();
 		
-		
-		//Make regions out of texture ( texture,      X, Y, width, height)
-		//Order is from left to right and down.
-//		regions[0] = new TextureRegion(buttonTexture, 0,   0,   256, 64); 
-//		regions[1] = new TextureRegion(buttonTexture, 256, 0,   256, 64);
-//		regions[2] = new TextureRegion(buttonTexture, 0,   64,  256, 64);
-//		regions[3] = new TextureRegion(buttonTexture, 256, 64,  256, 64);
-//		regions[4] = new TextureRegion(buttonTexture, 0,   128, 256, 64);
-//		regions[5] = new TextureRegion(buttonTexture, 256, 128, 256, 64);
-//		regions[6] = new TextureRegion(buttonTexture, 0,   192, 256, 64);
-//		regions[7] = new TextureRegion(buttonTexture, 256, 192, 256, 64);
 		
 		// Keep track of which is selected.
 		selected = new int[3];    // 4 with options
@@ -124,18 +128,44 @@ public class MainMenu implements Screen {
 
 	@Override
 	public void render(float delta) {
-		stateTime += Gdx.graphics.getDeltaTime();
-	
+		float graphicsDelta = Gdx.graphics.getDeltaTime();
+
+		stateTime += graphicsDelta;
+		
+		if(!distortLogo)
+		fxTimer += graphicsDelta;
+		else
+		distortTimer += graphicsDelta;
+
+		
+		if(fxTimer > fxTime){
+			SoundManager.logoDistort.play(1f);
+			distortLogo = true;
+			fxTimer = 0f;
+		}
+
+			
+		if(distortTimer > distortTime && distortLogo){
+			distortLogo = false;
+			distortTimer = 0f;
+		}
+		
+		float cameraMod = 0.0001f * (float)Math.sin(stateTime);
+		camera.zoom += cameraMod;
+		camera.rotate(cameraMod);
+		camera.update();
+        batch.setProjectionMatrix(camera.combined);
 		
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		stage.draw();
 		
-		
-		
 		batch.begin();
 		
+		if(!distortLogo)
 		batch.draw(MenuManager.logoLarge, logoPos.x, logoPos.y, logoScaled.x, logoScaled.y);
-		
+		else
+		batch.draw(MenuManager.distortLogo.getKeyFrame(stateTime, true), logoPos.x, logoPos.y, logoScaled.x, logoScaled.y);
+
 		if(selected[0] == 1)
 			batch.draw(MenuManager.hostActive.getKeyFrame(stateTime, true), hostPos.x, hostPos.y);
 		else
@@ -209,6 +239,8 @@ public class MainMenu implements Screen {
 	public void show() {
 		batch = new SpriteBatch();
 	}
+	
+
 
 	@Override
 	public void resize(int width, int height) { }

@@ -24,7 +24,7 @@ public class MenuLauncher {
 		 
 
 		
-	//config.fullscreen = true;
-	//config.vSyncEnabled = true;
+	config.fullscreen = true;
+	config.vSyncEnabled = true;
 	}
 }

@@ -36,7 +36,7 @@ public class GameClient {
 
 
 	
-	public GameClient(Game game, String hostIP) throws IOException{
+	public GameClient(Game game, String hostIP) throws UnknownHostException, IOException{
 		this.game = game;
 		this.hostIP = hostIP;
 		SetupNetworkListener();
@@ -64,7 +64,7 @@ public class GameClient {
 		client.stop();
 	}
 	
-	private void SetupNetworkListener(){
+	private void SetupNetworkListener() throws UnknownHostException, IOException{
 		
 		//========= CLIENT ==========
 		client = new Client(32764, 4096);
@@ -137,24 +137,20 @@ public class GameClient {
 				
 				if(o instanceof LobbyUpdate){
 					LobbyUpdate l = (LobbyUpdate)o;
+					if(lobby != null){
 					lobby.UpdateLobby(l.playerStatus);
 					lobby.hasReceivedUpdate = true;
+					}
 				}
 
 			}
 		}));
 		
 		
-		try {
-			client.connect(5000, hostIP, NConfig.PORT);
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		//========= CLIENT END ==========
-		
+		// === Try to connect. Throws exception if unsuccesful === 
+		client.connect(5000, hostIP, NConfig.PORT);
+	
+			
 	}
 		
 }

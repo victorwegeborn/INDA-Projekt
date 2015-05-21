@@ -25,6 +25,8 @@ public class MenuManager {
 	public static Animation quitIdle = new Animation(framerate, mainMenuSheet.findRegions("quitidle"));
 	public static Animation quitActive = new Animation(framerate, mainMenuSheet.findRegions("quitactive"));
 	
+	public static Animation distortLogo = new Animation(1/60f, mainMenuSheet.findRegions("mainlogobwdist"));
+
 	public static TextureRegion logo = mainMenuSheet.findRegion("mainlogobw");
 	public static TextureRegion logoLarge = mainMenuSheet.findRegion("mainlogobwlarge");
 	

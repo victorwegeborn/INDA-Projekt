@@ -143,15 +143,12 @@ public class NetworkEngine {		//implements Screen {
 	
 	public void create() {
 		
-		//SetupServer();
 		
 		SetupCamera();
 		
 		SetupSpriteBatch();
 	
 		CreateWorld();
-		
-		CreatePlayers(2);
 	
 		InitializeItemPools();
 		
@@ -165,62 +162,10 @@ public class NetworkEngine {		//implements Screen {
 
 	}
 	
-	private void SetupServer(){
+	public void RemovePlayer(int player){
 		
-		server = new Server() {
-			protected Connection newConnection () {
-				playerCount++;
-				Log.info("Current player count: " + playerCount);
-				NPlayerConnection c = new NPlayerConnection();
-				c.player = playerCount;
-				// By providing our own connection implementation, we can store per
-				// connection state without a connection ID to state look up.
-				return c;
-			}
-		};
-		
-		//Register all packages that will be sent between server and client
-		NNetwork.register(server);
-				
-		//Process all packages in the listener
-		server.addListener(new Listener() {
-					
-			public void connected (Connection c) {
-				Log.info("[SERVER] player connecting");
-			}
-
-					
-			public void disconnected (Connection c) {
-				Log.info("[SERVER] player disconnecting");
-			}
-
-			public void received (Connection c, Object o) {
-				int player = 0;
-				if(c instanceof NPlayerConnection){
-					//System.out.println("NPlayerConnection received!");
-				player = ((NPlayerConnection) c).player - 1;	
-				}
-					
-				if(player > GameStateManager.allPlayers.size())
-					return;
-				
-				if(o instanceof MovePlayer) 	
-					currentMovePlayer[player] = (MovePlayer)o;
-						
-					return;
-					}
-				
-			});
-				
-			try {
-				server.bind(NConfig.PORT);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				Gdx.app.exit();
-			}
-			server.start();
 	}
+	
 	
 	
 	
@@ -232,6 +177,7 @@ public class NetworkEngine {		//implements Screen {
 		// -------------------------------------------***
 		
 	}
+	
 	
 	private void SetupSpriteBatch(){
 		// Setup the sprite batch
@@ -481,8 +427,6 @@ public class NetworkEngine {		//implements Screen {
 			boxes = GameStateManager.ResetGame(tileMap, WORLD, boxes);
 			resetGame = false;
 		}
-		
-		
 
 	}
 	
@@ -750,7 +694,6 @@ public class NetworkEngine {		//implements Screen {
 				float offset = 0.5f;
 				float rayx = x + offset;
 				float rayy = y + offset;
-				DrawSquare(rayx, rayy, Color.WHITE);
 								
 				ItemPlacer.SetFire(x, y, WORLD);
 
@@ -781,7 +724,6 @@ public class NetworkEngine {		//implements Screen {
 							if(!obstacleHitUp){
 								WORLD.rayCast(fRay, new Vector2(rayx, rayy + f - 1), new Vector2(rayx, rayy + f));
 								obstacleHitUp = fRay.hasCollided && Math.abs(fRay.hitPoint.y - (rayy + f - 1)) < 1;
-								DrawSquare(rayx, rayy + f, Color.WHITE);
 
 								
 								if(!obstacleHitUp){
@@ -796,9 +738,7 @@ public class NetworkEngine {		//implements Screen {
 								
 								if(fRay.hitPoint != null)
 									obstacleHitDown = fRay.hasCollided && Math.abs(fRay.hitPoint.y - (rayy - f + 1)) < 1;
-								
-								DrawSquare(rayx, rayy - f, Color.WHITE);
-								
+																
 							
 								if(!obstacleHitDown){
 									fireD = ItemPlacer.SetFire(x, y - f, WORLD);
@@ -813,7 +753,6 @@ public class NetworkEngine {		//implements Screen {
 								if(fRay.hitPoint != null)
 									obstacleHitRight = fRay.hasCollided && Math.abs(fRay.hitPoint.x - (rayx + f - 1)) < 1;
 								
-								DrawSquare(rayx + f, rayy, Color.WHITE);
 
 							
 								if(!obstacleHitRight){
@@ -829,7 +768,6 @@ public class NetworkEngine {		//implements Screen {
 								if(fRay.hitPoint != null)
 									obstacleHitLeft = fRay.hasCollided && Math.abs(fRay.hitPoint.x - (rayx - f + 1)) < 1;
 								
-								DrawSquare(rayx - f, rayy, Color.WHITE);
 
 							
 								if(!obstacleHitLeft){	
@@ -851,13 +789,7 @@ public class NetworkEngine {		//implements Screen {
 			
 		}
 	
-	
-	
-	//Useful for debugging world checks
-	public static void DrawSquare(float x, float y, Color color){
-		squares.add(new Square(x, y, color));	
-	}
-		
+
 		
 
 	private void PrintAllContacts(){
@@ -878,42 +810,5 @@ public class NetworkEngine {		//implements Screen {
 				System.out.println(a + " at position " + apos + " collides with " + b + " at position " + bpos);
 			}
 		}
-
-//	public void show() {
-//			// TODO Auto-generated method stub
-//			
-//		}
-//
-//		@Override
-//		public void resize(int width, int height) {
-//			// TODO Auto-generated method stub
-//			
-//		}
-//
-//		@Override
-//		public void pause() {
-//			// TODO Auto-generated method stub
-//			
-//		}
-//
-//		@Override
-//		public void resume() {
-//			// TODO Auto-generated method stub
-//			
-//		}
-//
-//		@Override
-//		public void hide() {
-//			// TODO Auto-generated method stub
-//			
-//		}
-//
-//		@Override
-//		public void dispose() {
-//			// TODO Auto-generated method stub
-//			
-//		}
-		
-			
 	}
 

@@ -65,37 +65,51 @@ mainlogobw
   orig: 256, 128
   offset: 0, 0
   index: -1
-mainlogobwlarge
+mainlogobwdist
   rotate: false
   xy: 2, 234
+  size: 384, 192
+  orig: 384, 192
+  offset: 0, 0
+  index: 1
+mainlogobwdist
+  rotate: false
+  xy: 2, 428
+  size: 384, 192
+  orig: 384, 192
+  offset: 0, 0
+  index: 2
+mainlogobwlarge
+  rotate: false
+  xy: 2, 622
   size: 384, 192
   orig: 384, 192
   offset: 0, 0
   index: -1
 quitactive
   rotate: false
-  xy: 2, 428
+  xy: 2, 816
   size: 128, 32
   orig: 128, 32
   offset: 0, 0
   index: 1
 quitactive
   rotate: false
-  xy: 132, 428
+  xy: 132, 816
   size: 128, 32
   orig: 128, 32
   offset: 0, 0
   index: 2
 quitactive
   rotate: false
-  xy: 262, 428
+  xy: 262, 816
   size: 128, 32
   orig: 128, 32
   offset: 0, 0
   index: 3
 quitidle
   rotate: false
-  xy: 2, 462
+  xy: 2, 850
   size: 128, 32
   orig: 128, 32
   offset: 0, 0

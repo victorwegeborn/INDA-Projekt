@@ -47,6 +47,7 @@ public class GameLobby implements Screen {
 
 	
 	private OrthographicCamera camera;
+	private static float cameraZoom = 50f; 
 	
 	private boolean isHost;
 	
@@ -147,7 +148,7 @@ public class GameLobby implements Screen {
 	private void SetupCamera(){
 		camera = new OrthographicCamera(B2DVars.VIRTUAL_WIDTH, B2DVars.VIRTUAL_HEIGHT);
 		Viewport viewport = new StretchViewport(B2DVars.VIRTUAL_WIDTH, B2DVars.VIRTUAL_HEIGHT, camera);
-		camera.zoom = 50f;
+		camera.zoom += cameraZoom;
 		camera.update();
 		screenWidth = Gdx.graphics.getWidth();
 		screenHeight = Gdx.graphics.getHeight();

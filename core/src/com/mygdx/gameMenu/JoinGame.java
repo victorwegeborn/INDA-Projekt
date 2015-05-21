@@ -1,6 +1,7 @@
 package com.mygdx.gameMenu;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
@@ -214,8 +215,12 @@ public class JoinGame implements Screen {
 						game.setScreen(lobby);
 
 					} catch (IOException e) {
-						System.out.println("CONNECTION FAILED!");
-					}			
+						if(e instanceof UnknownHostException)
+						System.out.println("Can't find host");
+						
+						else
+						System.out.println("Connection error!");
+					}
 						break;
 						case 1: game.setScreen(new MainMenu(game));
 						break;

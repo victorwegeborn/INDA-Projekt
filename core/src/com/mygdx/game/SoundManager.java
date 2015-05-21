@@ -16,6 +16,7 @@ public class SoundManager {
 	public static Sound powerup2 = Gdx.audio.newSound(Gdx.files.internal("sounds/powerup2.wav"));
 	public static Sound dropbomb = Gdx.audio.newSound(Gdx.files.internal("sounds/dropbomb.wav"));
 	public static Sound explosion1 = Gdx.audio.newSound(Gdx.files.internal("sounds/explosion1.wav"));
+	public static Sound logoDistort = Gdx.audio.newSound(Gdx.files.internal("sounds/logodistort.wav"));
 
 	
 	// ==== MUSIC ====
