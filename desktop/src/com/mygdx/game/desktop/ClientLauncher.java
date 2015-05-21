@@ -6,7 +6,7 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.mygdx.NGame.NGame;
 import com.mygdx.game.CoreGame;
-import com.mygdx.game.GameClient;
+import com.mygdx.game.ClientEngine;
 import com.mygdx.screen.*;
 
 

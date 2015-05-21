@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import com.badlogic.gdx.ApplicationAdapter;
@@ -38,21 +39,45 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.joints.FrictionJoint;
 import com.badlogic.gdx.physics.box2d.joints.FrictionJointDef;
+import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.EndPoint;
+import com.esotericsoftware.kryonet.Listener;
+import com.esotericsoftware.kryonet.Server;
+import com.esotericsoftware.minlog.Log;
+import com.mygdx.NGame.NConfig;
+import com.mygdx.NGame.NNetwork;
+import com.mygdx.NGame.NNetwork.NPlayerConnection;
+import com.mygdx.NGame.NNetwork.BombUpdate;
+import com.mygdx.NGame.NNetwork.PlayerUpdate;
+import com.mygdx.NGame.NNetwork.FireUpdate;
+import com.mygdx.NGame.NNetwork.ItemUpdate;
+import com.mygdx.NGame.NNetwork.ShakeUpdate;
+import com.mygdx.NGame.NPlayer;
+import com.mygdx.NGame.NNetwork.BoxUpdate;
+import com.mygdx.NGame.NNetwork.WinScreenUpdate;
+import com.mygdx.NGame.NNetwork.MovePlayer;
 import com.mygdx.game.Player.State;
 import com.mygdx.gameData.BombData;
+import com.mygdx.gameData.BoxData;
+import com.mygdx.gameData.FireData;
+import com.mygdx.gameData.ItemData;
+import com.mygdx.gameData.PlayerData;
 
-public class CoreGame implements Screen {
+public class NetworkEngine {		//implements Screen {
 	SpriteBatch batch;
 	Texture img;
-
-	// TODO: Migrate to server!
+	
+	private static final boolean renderWorld = false;
+	
+	
 	public static World WORLD; // Physics world
 	private static ContactHandler contactHandler = new ContactHandler();
 	private static WorldQuery worldQuery;
 	private static FireRayCastHandler fireRayCast = new FireRayCastHandler();
 	
 	private Player player;
-	//private static ArrayList<Player> allPlayers = new ArrayList<Player>();
+	private WinScreenUpdate winUpdate = new WinScreenUpdate();
+	private boolean sentWinUpdate;
 	
 	public static Body FRICTION; // Body used to maintain friction between players and floor
 	private static float timeStep = 1f / 60f; // Interval of physics simulation
@@ -63,7 +88,7 @@ public class CoreGame implements Screen {
 	static float sWidth = 0.2f, sHeight = 0.2f;
 	static ArrayList<Square> squares = new ArrayList<Square>(); 
 
-	// Dummy game variables, move to Player-class?
+	// Dummy game variables, move to Player-class / B2DVars?
 	private static final float MOVE_FORCE = 10f;
 	private static final float MAX_MOVE_SPEED = 3f;
 
@@ -89,8 +114,8 @@ public class CoreGame implements Screen {
 	private TextureRegion boxSprite;
 	
 	private TiledMapTileLayer wallLayer;
-	//
-
+	
+	public MovePlayer[] currentMovePlayer;
 	
 	private boolean resetGame;
 	
@@ -99,8 +124,11 @@ public class CoreGame implements Screen {
 	
 	float stateTime;
 	
+	public Server server;
+	private int playerCount;
+		
 	
-	public CoreGame(){
+	public NetworkEngine(){
 		create();
 	}
 	
@@ -114,6 +142,8 @@ public class CoreGame implements Screen {
 	 */
 	
 	public void create() {
+		
+		//SetupServer();
 		
 		SetupCamera();
 		
@@ -129,12 +159,70 @@ public class CoreGame implements Screen {
 			
 		SetupDebugRenderers();
 		
-		SetupSound();
-		
 		stateTime = 0.0f;
+		playerCount = 0;
 		
 
 	}
+	
+	private void SetupServer(){
+		
+		server = new Server() {
+			protected Connection newConnection () {
+				playerCount++;
+				Log.info("Current player count: " + playerCount);
+				NPlayerConnection c = new NPlayerConnection();
+				c.player = playerCount;
+				// By providing our own connection implementation, we can store per
+				// connection state without a connection ID to state look up.
+				return c;
+			}
+		};
+		
+		//Register all packages that will be sent between server and client
+		NNetwork.register(server);
+				
+		//Process all packages in the listener
+		server.addListener(new Listener() {
+					
+			public void connected (Connection c) {
+				Log.info("[SERVER] player connecting");
+			}
+
+					
+			public void disconnected (Connection c) {
+				Log.info("[SERVER] player disconnecting");
+			}
+
+			public void received (Connection c, Object o) {
+				int player = 0;
+				if(c instanceof NPlayerConnection){
+					//System.out.println("NPlayerConnection received!");
+				player = ((NPlayerConnection) c).player - 1;	
+				}
+					
+				if(player > GameStateManager.allPlayers.size())
+					return;
+				
+				if(o instanceof MovePlayer) 	
+					currentMovePlayer[player] = (MovePlayer)o;
+						
+					return;
+					}
+				
+			});
+				
+			try {
+				server.bind(NConfig.PORT);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				Gdx.app.exit();
+			}
+			server.start();
+	}
+	
+	
 	
 	private void SetupCamera(){
 
@@ -164,17 +252,13 @@ public class CoreGame implements Screen {
 	 * Each player is joined to the friction floor
 	 * for accurate physics calculation
 	 */
-	private void CreatePlayers(int numberOfPlayers){
-		
-		if(numberOfPlayers < 1)
-			numberOfPlayers = 1;
-		
-		if(numberOfPlayers > 4)
-			numberOfPlayers = 4;
+	public void CreatePlayers(int numberOfPlayers){
+		//Init the update field
+		currentMovePlayer = new MovePlayer[numberOfPlayers];
+		for(int i = 0; i < numberOfPlayers; i++)
+			currentMovePlayer[i] = new MovePlayer();
 		
 		GameStateManager.allPlayers = PlayerCreator.CreatePlayers(numberOfPlayers, FRICTION, WORLD);
-		
-		player = GameStateManager.allPlayers.get(0);
 		
 	}
 	
@@ -244,10 +328,6 @@ public class CoreGame implements Screen {
 	 * Creates a new random map using the specified level
 	 * in .tmx format.
 	 */
-	
-	private void SetupSound(){
-	 SoundManager.bg1.loop();
-	}
 
 	private void SetupMap(String map){
 		
@@ -271,7 +351,7 @@ public class CoreGame implements Screen {
 		MapBodyBuilder.buildShapes(tileMap, B2DVars.PPM, WORLD, B2DVars.BIT_WALL, "wall", false);  //Build walls
 		MapRandomizer mapRand = new MapRandomizer();
 		
-		boxLayer = mapRand.fillMap(WORLD, tileMap, B2DVars.BOX_DENSITY); //Construct random boxes
+		boxLayer = mapRand.fillMap(WORLD, tileMap, 50); //Construct random boxes
 		boxLayer.setVisible(false);
 		tileMap.getLayers().add(boxLayer);
 		boxes = mapRand.boxes;
@@ -288,29 +368,31 @@ public class CoreGame implements Screen {
 	}
 	
 	public void Update(float dt) {
+		CheckAllPlayerMovement();
+		
 		WORLD.step(timeStep, 1, 1); // Note that step is called with a fixed timestep
 		
 		UpdateGameObjects(dt);
 		
 		if(B2DVars.SCREEN_SHAKE)
 			shake.update(dt, camera, cameraCenterPos);
+		
+		SendActiveObjects();
 
+		
 	}
 	
 
-	@Override
-	public void render(float dt) {
+	
+	public void render() {
 		
-		if(!GameStateManager.inputBlocked){
-		HandleInputs();
-		HandleInputsP2(); // Temp local multiplayer
-		}
+		//System.out.println("Render called! Deltatime: " + Gdx.graphics.getDeltaTime());
 		
 		// Update statetime and physics
 		stateTime += Gdx.graphics.getDeltaTime();
 		Update(Gdx.graphics.getDeltaTime());
 
-
+		if(renderWorld){
 		
 		// Clear screen
 		Gdx.gl.glClearColor(0, 0, 0, 0);
@@ -318,14 +400,12 @@ public class CoreGame implements Screen {
 
 		camera.update();
 		batch.setProjectionMatrix(camera.combined);
-
-		
-
 		
 		batch_tiledMapRenderer.setView(camera);
 		batch_tiledMapRenderer.render(bottomLayers);
 		
 
+		
 		//Batch BEGIN, order of rendering decides displayed layering----***
 		batch.begin();
 	
@@ -338,15 +418,14 @@ public class CoreGame implements Screen {
 		RenderPlayers();
 		
 		RenderFire();
-			
-		batch.end();
-		//Batch END-----------------------------------------------------***
 		
-
+		batch.end();
+		//Batch END-----------------------------------------------------***	
+		
 		
 		batch_tiledMapRenderer.render(topLayers);
 		
-
+		}
 		
 		//Debug-tools, uncomment for visual aid / bug-hunting:
 		//b2dr.render(WORLD, camera.combined);
@@ -354,9 +433,19 @@ public class CoreGame implements Screen {
 		//PrintAllContacts();
 		//fps.log();
 		
+
 		if(GameStateManager.PlayerWon()){
 			GameStateManager.inputBlocked = true;
-			GameStateManager.sleepTimer += dt;
+			GameStateManager.sleepTimer += Gdx.graphics.getDeltaTime();
+			winUpdate.playerNr = GameStateManager.playerWinner;
+			
+			if(!sentWinUpdate){
+				server.sendToAllTCP(winUpdate);
+				sentWinUpdate = true;
+			}
+			
+			if(renderWorld){
+
 			Texture winScreen;
 			
 			switch(GameStateManager.playerWinner){
@@ -375,13 +464,17 @@ public class CoreGame implements Screen {
 			default:
 				winScreen = GameStateManager.winPlayer1;
 			}
-			
 			batch.begin();
 			batch.draw(winScreen, 6.5f, 3.5f, 192 / B2DVars.PPM, 64 / B2DVars.PPM);
 			batch.end();
 			
+			}
+			
 			if(GameStateManager.sleepTimer > B2DVars.LEVEL_RESET_SLEEPTIME)
 				boxes = GameStateManager.ResetGame(tileMap, WORLD, boxes);
+				winUpdate.playerNr = GameStateManager.playerWinner;
+				server.sendToAllTCP(winUpdate);
+				sentWinUpdate = false;
 		}
 		
 		if(resetGame){
@@ -389,6 +482,8 @@ public class CoreGame implements Screen {
 			resetGame = false;
 		}
 		
+		
+
 	}
 	
 	/**
@@ -398,6 +493,7 @@ public class CoreGame implements Screen {
 	 * @param dt deltatime for updates as float
 	 */
 	private void UpdateGameObjects(float dt){
+		
 		for(Player p : GameStateManager.allPlayers){
 			if(!p.Dead())
 				p.Update();	
@@ -429,7 +525,125 @@ public class CoreGame implements Screen {
 		for(Box b : boxes)
 			b.Update(dt);	
 	}
+	
+	private void SendActiveObjects(){
 		
+		//**BOXES (BoxUpdate)**
+		BoxUpdate boxUpdate = new BoxUpdate(); 
+		ArrayList<BoxData> activeBoxes = new ArrayList<BoxData>();
+		for(Box b : boxes){
+			if(b.IsActive())
+				activeBoxes.add((BoxData)b.body.getUserData());
+		}
+		boxUpdate.boxes = activeBoxes;
+		
+		server.sendToAllTCP(boxUpdate);
+		
+		//**PLAYERS (PlayerUpdate)**
+		PlayerUpdate playerUpdate = new PlayerUpdate();
+		ArrayList<PlayerData> activePlayers = new ArrayList<PlayerData>();
+		for(Player p : GameStateManager.allPlayers){
+			if(!p.Dead())
+				activePlayers.add((PlayerData)p.body.getUserData());
+		}
+		playerUpdate.players = activePlayers;
+		server.sendToAllTCP(playerUpdate);
+		
+		//**BOMBS (BombUpdate)**
+		BombUpdate bombUpdate = new BombUpdate();
+		ArrayList<BombData> activeBombs = new ArrayList<BombData>();
+		for(Bomb b : ItemPool.bombs){
+			if(b.active){
+				activeBombs.add(b.GetData());
+			}	
+		bombUpdate.bombs = activeBombs;
+		server.sendToAllTCP(bombUpdate);
+		
+		}
+		
+		//**Fires (FireUpdate)**
+		FireUpdate fireUpdate = new FireUpdate();
+		ArrayList<FireData> activeFires = new ArrayList<FireData>();
+		for(Fire f : ItemPool.fires){
+			if(f.active)
+				activeFires.add(f.GetData());
+		}
+		fireUpdate.fires = activeFires;
+		server.sendToAllTCP(fireUpdate);
+		
+		
+		//**Bomb PowerUps && Fire PowerUps (ItemUpdate)**
+		ItemUpdate  itemUpdate = new ItemUpdate();
+		ArrayList<ItemData> activeItems = new ArrayList<ItemData>();
+		
+		for(BombPowerUp b : ItemPool.bombPows){
+			if(b.active)
+				activeItems.add(b.GetData());
+		}
+		
+		for(FirePowerUp f : ItemPool.firePows){
+			if(f.active)
+				activeItems.add(f.GetData());
+		}
+		
+		itemUpdate.items = activeItems;
+		server.sendToAllTCP(itemUpdate);
+	}
+	
+	private void CheckAllPlayerMovement(){
+		for(Player p : GameStateManager.allPlayers){
+			if(!p.Dead())
+				MovePlayer(p, currentMovePlayer[p.GetPlayerNumber() - 1]);
+		}
+	}
+	
+
+	
+	private void MovePlayer(Player p, MovePlayer moveData){
+	
+	if(!GameStateManager.inputBlocked){
+	
+	switch(moveData.direction){
+		case Input.Keys.A: //System.out.println("[SERVER] CALCULATE TO MOVE LEFT");
+		if(!p.Dead()){
+			p.SetState(State.Left);
+			if (Math.abs(p.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
+				p.body.applyForceToCenter(new Vector2(-MOVE_FORCE, 0),	true);
+		}
+	
+		break;
+		case Input.Keys.D: //System.out.println("[SERVER] CALCULATE TO MOVE RIGHT");
+		if(!p.Dead()){
+			p.SetState(State.Right);
+
+			if (Math.abs(p.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
+				p.body.applyForceToCenter(new Vector2(MOVE_FORCE, 0), true);
+		}	
+	
+		break;
+		case Input.Keys.W: //System.out.println("[SERVER] CALCULATE TO MOVE UP");
+		if(!p.Dead()){
+			p.SetState(State.Up);
+			
+			if (Math.abs(p.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
+				p.body.applyForceToCenter(new Vector2(0, MOVE_FORCE), true);
+			}
+		break;
+		case Input.Keys.S: //System.out.println("[SERVER] CALCULATE TO MOVE DOWN");
+		if(!p.Dead()){
+			p.SetState(State.Down);
+
+			if (Math.abs(p.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
+				p.body.applyForceToCenter(new Vector2(0, -MOVE_FORCE),	true);
+		}
+		break;
+		}
+	
+		if(((MovePlayer) moveData).bomb == Input.Keys.SPACE)
+			ItemPlacer.DropBomb(p);		
+	}
+	}
+	
 	private void RenderSquares(){
 		sRend.setProjectionMatrix(camera.combined);
 		sRend.updateMatrices();
@@ -445,7 +659,8 @@ public class CoreGame implements Screen {
 	private void RenderBoxes(){
 		for(Box b : boxes){
 			if(b.IsActive())
-				batch.draw(boxSprite, b.body.getPosition().x, b.body.getPosition().y, 1, 1);		
+				batch.draw(boxSprite, b.body.getPosition().x, b.body.getPosition().y, 1, 1);
+			
 		}
 	}
 
@@ -454,7 +669,7 @@ public class CoreGame implements Screen {
 	 */
 	private void RenderPlayers(){
 		for(Player p : GameStateManager.allPlayers){
-		if(!p.Dead()){
+		if(!p.GetData().Dead()){
 			batch.draw(p.Animation().getKeyFrame(stateTime, true),
 					p.body.getPosition().x - 0.5f,
 					p.body.getPosition().y - 0.3f, 1, 1);
@@ -516,51 +731,7 @@ public class CoreGame implements Screen {
 		}		
 		
 	}
-	
-	/**
-	 * Place the specified power up at the specified position
-	 * @param type 
-	 * @param position
-	 */
-	
-	public static void PlacePowerUp(int type, Vector2 position){
-		
-		switch(type){
-		
-		case B2DVars.BOMB_POWERUP:
-			
-			BombPowerUp bombPow;
-			
-			for(BombPowerUp b : ItemPool.bombPows){
-				if(!b.active){
-					bombPow = b;
-					bombPow.body.setTransform(position, 0);
-					bombPow.active = true;
-					break;
-				}		
-			}
-			
-				break;
-				
-		case B2DVars.FIRE_POWERUP:
-			
-			FirePowerUp firePow;
-			
-			for(FirePowerUp f : ItemPool.firePows){
-				if(!f.active){
-					firePow = f;
-					firePow.body.setTransform(position, 0);
-					firePow.active = true;
-					break;
-				}		
-			}
-				break;
-			
-		default:
-			break;
-			
-		}	
-	}
+
 	
 	
 	/**
@@ -583,6 +754,9 @@ public class CoreGame implements Screen {
 								
 				ItemPlacer.SetFire(x, y, WORLD);
 
+				if(Gdx.input.isKeyPressed(Input.Keys.F)){
+					System.out.println("position x: " + x + " y:" + y);
+				}
 				
 				Fire fireL = null;
 				Fire fireR = null;
@@ -607,6 +781,7 @@ public class CoreGame implements Screen {
 							if(!obstacleHitUp){
 								WORLD.rayCast(fRay, new Vector2(rayx, rayy + f - 1), new Vector2(rayx, rayy + f));
 								obstacleHitUp = fRay.hasCollided && Math.abs(fRay.hitPoint.y - (rayy + f - 1)) < 1;
+								DrawSquare(rayx, rayy + f, Color.WHITE);
 
 								
 								if(!obstacleHitUp){
@@ -621,7 +796,9 @@ public class CoreGame implements Screen {
 								
 								if(fRay.hitPoint != null)
 									obstacleHitDown = fRay.hasCollided && Math.abs(fRay.hitPoint.y - (rayy - f + 1)) < 1;
-																
+								
+								DrawSquare(rayx, rayy - f, Color.WHITE);
+								
 							
 								if(!obstacleHitDown){
 									fireD = ItemPlacer.SetFire(x, y - f, WORLD);
@@ -636,6 +813,8 @@ public class CoreGame implements Screen {
 								if(fRay.hitPoint != null)
 									obstacleHitRight = fRay.hasCollided && Math.abs(fRay.hitPoint.x - (rayx + f - 1)) < 1;
 								
+								DrawSquare(rayx + f, rayy, Color.WHITE);
+
 							
 								if(!obstacleHitRight){
 									fireR = ItemPlacer.SetFire(x + f, y, WORLD);
@@ -650,6 +829,8 @@ public class CoreGame implements Screen {
 								if(fRay.hitPoint != null)
 									obstacleHitLeft = fRay.hasCollided && Math.abs(fRay.hitPoint.x - (rayx - f + 1)) < 1;
 								
+								DrawSquare(rayx - f, rayy, Color.WHITE);
+
 							
 								if(!obstacleHitLeft){	
 									fireL = ItemPlacer.SetFire(x - f, y, WORLD);
@@ -659,8 +840,12 @@ public class CoreGame implements Screen {
 							
 					}
 				
+				//Tell all clients to initiate shake effect
+				ShakeUpdate shakeUpdate = new ShakeUpdate();
+				shakeUpdate.shakeFactor = B2DVars.SHAKE_TIME * firePower;	
+				server.sendToAllTCP(shakeUpdate);
+				
 				shake.shake(B2DVars.SHAKE_TIME * firePower); //Screen shakes proportionately to fire power
-				SoundManager.explosion1.play(1f);
 				b.detonate = false;
 				b.GetData().UnflagDetonation();
 			
@@ -672,201 +857,10 @@ public class CoreGame implements Screen {
 	public static void DrawSquare(float x, float y, Color color){
 		squares.add(new Square(x, y, color));	
 	}
-	
-	
-	/**
-	 * Grabs a Fire-object from the pool. If all
-	 * fire-objects are active, creates a new fire.
-	 * @return reference to a Fire-body in world
-	 */
-
-
-	
-	/**
-	 * Grabs the first inactive bomb in bomb pool,
-	 * places it at players position (quantized to
-	 * nearest tile center)
-	 */
-	
-	
-	
-	
-	private void HandleInputsP2(){
-		Player p = GameStateManager.allPlayers.get(1);
-		if (Gdx.input.isKeyJustPressed(Input.Keys.T))
-			if(!p.Dead()){
-				ItemPlacer.DropBomb(p);
-			}
-
-		if (Gdx.input.isKeyPressed(Input.Keys.A)){
-			if(!p.Dead()){
-				p.SetState(State.Left);
-				if (Math.abs(p.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
-					p.body.applyForceToCenter(new Vector2(-MOVE_FORCE, 0),	true);
-		}
-			return;
-		}
-		if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-			if(!p.Dead()){
-				p.SetState(State.Right);
-
-				if (Math.abs(p.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
-					p.body.applyForceToCenter(new Vector2(MOVE_FORCE, 0), true);
-			}
-
-			return;
-
-		}
-
-		if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-			if(!p.Dead()){
-				p.SetState(State.Up);
-				
-				if (Math.abs(p.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
-					p.body.applyForceToCenter(new Vector2(0, MOVE_FORCE), true);
-				}
-			return;
-		}
-
-		if (Gdx.input.isKeyPressed(Input.Keys.S)) {
-			if(!p.Dead()){
-				p.SetState(State.Down);
-
-				if (Math.abs(p.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
-					p.body.applyForceToCenter(new Vector2(0, -MOVE_FORCE),	true);
-			}
-			return;
-		}
 		
 		
-	}
-	
-	
-	
-	private void HandleInputs() {
-		
-		if(Gdx.input.isKeyJustPressed(Input.Keys.R))
-			resetGame = true;
 
-		if (Gdx.input.isKeyPressed(Input.Keys.Q))
-			Gdx.app.exit();
-		
-		if (Gdx.input.isKeyJustPressed(Input.Keys.P))
-			if(!player.Dead()){
-				SoundManager.dropbomb.play(1f);
-				ItemPlacer.DropBomb(player);
-			}
-
-		if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-			if(!player.Dead()){
-				player.SetState(State.Left);
-				if (Math.abs(player.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
-					player.body.applyForceToCenter(new Vector2(-MOVE_FORCE, 0),	true);
-		}
-			return;
-		}
-		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-			if(!player.Dead()){
-				player.SetState(State.Right);
-
-				if (Math.abs(player.body.getLinearVelocity().x) < MAX_MOVE_SPEED)
-					player.body.applyForceToCenter(new Vector2(MOVE_FORCE, 0), true);
-			}
-
-			return;
-
-		}
-
-		if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-			if(!player.Dead()){
-				player.SetState(State.Up);
-				
-				if (Math.abs(player.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
-					player.body.applyForceToCenter(new Vector2(0, MOVE_FORCE), true);
-				}
-			return;
-		}
-
-		if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-			if(!player.Dead()){
-				player.SetState(State.Down);
-
-				if (Math.abs(player.body.getLinearVelocity().y) < MAX_MOVE_SPEED)
-					player.body.applyForceToCenter(new Vector2(0, -MOVE_FORCE),	true);
-			}
-			return;
-		}
-		
-
-		/**
-		 * Below are controls for dev-purposes
-		 */
-		if (Gdx.input.isKeyPressed(Input.Keys.I)) {
-			camera.zoom += 0.2f;
-			camera.update();
-			batch.setProjectionMatrix(camera.combined);
-
-		}
-
-		if (Gdx.input.isKeyPressed(Input.Keys.O)) {
-			camera.zoom -= 0.2f;
-			camera.update();
-			batch.setProjectionMatrix(camera.combined);
-
-		}
-		
-		if(Gdx.input.isKeyPressed(Input.Keys.B))
-			System.out.println("Bodies in world: " + WORLD.getBodyCount());
-
-		if(Gdx.input.isKeyJustPressed(Input.Keys.U)){
-			float x = Gdx.input.getX();
-			float y = Gdx.input.getY();
-			System.out.println("Current mouse pos. x: " + Gdx.input.getX() + " y: " + Gdx.input.getY());
-		}
-		
-
-		
-		if(Gdx.input.isKeyJustPressed(Input.Keys.J)){
-			Vector2 pos = player.body.getPosition();
-			float posY = Math.round(pos.y);
-			float posX = Math.round(pos.x);
-			int iposY = (int)pos.y;
-			int iposX = (int)pos.x;
-					
-			System.out.println("Current character world position x: " + pos.x + " y: " + pos.y);
-			System.out.println("Current character world position (round) x: " + posX + " y: " + posY);
-			System.out.println("Current character world position (int) x: " + iposX + " y: " + iposY);
-			
-			int bombCount = 0;
-			for(Bomb b : ItemPool.bombs){
-				if(b.active)
-					bombCount++;
-			}
-			
-			int fireCount = 0;
-			for(Fire f : ItemPool.fires){
-				if(f.active)
-					fireCount++;
-			}
-			
-
-			System.out.println("Current active bombs: " + bombCount + " Current active fires: " + fireCount);
-			System.out.println("Fire pool object count: " + ItemPool.fires.length + " Bomb pool object count: " + ItemPool.bombs.length);
-		
-
-			
-		}
-		
-		if(Gdx.input.isKeyJustPressed(Input.Keys.V)){
-			for(Fire f : ItemPool.fires)
-				System.out.println(f.active);
-		}
-		
-		if(Gdx.input.isKeyJustPressed(Input.Keys.L))
-			DrawSquare(player.body.getPosition().x, player.body.getPosition().y, Color.BLUE);
-	}
-		
-		private void PrintAllContacts(){
+	private void PrintAllContacts(){
 			Array<Contact> contacts = WORLD.getContactList();
 			
 			for(Contact c : contacts){
@@ -885,41 +879,40 @@ public class CoreGame implements Screen {
 			}
 		}
 
-		@Override
-		public void show() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void resize(int width, int height) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void pause() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void resume() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void hide() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void dispose() {
-			// TODO Auto-generated method stub
-			
-		}
+//	public void show() {
+//			// TODO Auto-generated method stub
+//			
+//		}
+//
+//		@Override
+//		public void resize(int width, int height) {
+//			// TODO Auto-generated method stub
+//			
+//		}
+//
+//		@Override
+//		public void pause() {
+//			// TODO Auto-generated method stub
+//			
+//		}
+//
+//		@Override
+//		public void resume() {
+//			// TODO Auto-generated method stub
+//			
+//		}
+//
+//		@Override
+//		public void hide() {
+//			// TODO Auto-generated method stub
+//			
+//		}
+//
+//		@Override
+//		public void dispose() {
+//			// TODO Auto-generated method stub
+//			
+//		}
 		
 			
 	}

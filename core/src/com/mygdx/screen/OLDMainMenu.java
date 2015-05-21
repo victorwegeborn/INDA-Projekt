@@ -10,8 +10,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.mygdx.game.SoundManager;
 
-public class MainMenu implements Screen {
+public class OLDMainMenu implements Screen {
 	
 	private Stage stage;
 	private Table table;
@@ -31,6 +32,7 @@ public class MainMenu implements Screen {
 		table.setBounds(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		
 		buttonExit = new TextButton("EXIT", skin);
+		
 		
 		table.add(buttonExit);
 		//table.debug();

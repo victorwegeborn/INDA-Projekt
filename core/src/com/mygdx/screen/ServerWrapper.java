@@ -3,15 +3,14 @@ package com.mygdx.screen;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
 import com.mygdx.game.CoreGame;
-import com.mygdx.game.GameClient;
-import com.mygdx.game.GameServer;
+import com.mygdx.game.ClientEngine;
+import com.mygdx.game.NetworkEngine;
 
 public class ServerWrapper extends Game{
 
 
 @Override
 public void create() {
-	setScreen(new GameServer());
 	}
 
 

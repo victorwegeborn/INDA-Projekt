@@ -1,8 +1,10 @@
 package com.mygdx.NGame;
 import java.util.ArrayList;
+
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.physics.box2d.World;
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.EndPoint;
 import com.mygdx.game.Box;
 import com.mygdx.gameData.BombData;
@@ -60,7 +62,14 @@ public class NNetwork {
 		kryo.register(java.util.ArrayList.class);
 		kryo.register(ShakeUpdate.class);
 		kryo.register(WinScreenUpdate.class);
-		
+		kryo.register(PlayerReady.class);
+		kryo.register(StartGame.class);
+		kryo.register(PlayerReadyFromServer.class);
+		kryo.register(PlayerEmptyFromServer.class);
+		kryo.register(PlayerConnectedFromServer.class);
+		kryo.register(LobbyUpdate.class);
+		kryo.register(int[].class);
+		kryo.register(RequestLobbyUpdate.class);
 	}
 	
 	public static class RequestConnection {}
@@ -75,6 +84,18 @@ public class NNetwork {
 	public static class ItemUpdate { public ArrayList<ItemData> items; }
 	public static class ShakeUpdate { public float shakeFactor; }
 	public static class WinScreenUpdate { public int playerNr; }
+	public static class PlayerReady {}
+	public static class StartGame {}
+	public static class PlayerReadyFromServer{public int player;}
+	public static class PlayerEmptyFromServer{public int player;}
+	public static class PlayerConnectedFromServer{public int player;}
+	public static class LobbyUpdate{public int[] playerStatus;}
+	public static class RequestLobbyUpdate{};
+	
+	// This holds per connection state.
+	public static class NPlayerConnection extends Connection {
+		public int player;
+	}
 	
 	
 }

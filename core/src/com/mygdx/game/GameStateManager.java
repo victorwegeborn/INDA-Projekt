@@ -13,7 +13,7 @@ import com.badlogic.gdx.utils.Array;
 import com.mygdx.gameData.BoxData;
 import com.mygdx.gameData.ItemData;
 
-public class GameManager {
+public class GameStateManager {
 	
 	
 	public static boolean inputBlocked;

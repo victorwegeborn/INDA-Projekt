@@ -41,6 +41,10 @@ public final class B2DVars {
 	public static final int FIRE_POWERUP = 2;
 	
 	public static final int BOXLAYER_INDEX = 5;
+	
+	public static final int PLAYER_EMPTY = 0;
+	public static final int PLAYER_CONNECTED = 1;
+	public static final int PLAYER_READY = 2;
 
 	
 	
@@ -51,6 +55,22 @@ public final class B2DVars {
 	public static final float SHAKE_AMPLITUDE = 0.1f;  //Default 0.1f
 	public static final int BOX_DENSITY = 50;
 	public static final int LEVEL_RESET_SLEEPTIME = 4;
+	public static final int MAX_PLAYERS = 4;
+	
+	/**
+	 * Lower this value if animations are choppy during network play.
+	 * This will increase server side cpu usage. Default value 16.66667
+	 */
+	public static final long NETWORK_UPDATE_CYCLE_TIME = (long)16.66667;
+	
+	public static final String NETWORK_DEFAULT_PORT_STRING = "54555";
+	public static final int NETWORK_DEFAULT_PORT_INT = 54555;
+	
+	public static final int VIRTUAL_WIDTH = 16;
+	public static final int VIRTUAL_HEIGHT = 9;
+
+
+
 	
 
 	

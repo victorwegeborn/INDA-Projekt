@@ -6,7 +6,7 @@ public class TestGame extends Game {
 
 	@Override
 	public void create() {
-		setScreen(new MainMenu());
+		setScreen(new OLDMainMenu());
 		// TODO Auto-generated method stub
 		
 	}

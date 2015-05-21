@@ -6,7 +6,7 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.mygdx.NGame.NGame;
 import com.mygdx.game.CoreGame;
-import com.mygdx.game.GameServer;
+import com.mygdx.game.NetworkEngine;
 import com.mygdx.screen.*;
 
 
@@ -14,7 +14,7 @@ public class MenuLauncher {
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 
-		new LwjglApplication(new ServerWrapper(), config);
+		new LwjglApplication(new MainGame(), config);
 		//new LwjglApplication(new TestGame(), config);
 		//new LwjglApplication(new NGame(), config);
 		//new LwjglApplication(new GameAlgo(), config);
