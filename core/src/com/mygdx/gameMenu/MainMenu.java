@@ -90,8 +90,6 @@ public class MainMenu implements Screen {
 		topLogo = new Texture(Gdx.files.internal("sprites/texts/mainlogobw.png"));
 		batch = new SpriteBatch();
 		batch.setProjectionMatrix(camera.combined);
-		//camera.zoom += cameraZoom;
-		//camera.position.set(327, 296, 0);
 		camera.update();
 		
 		
@@ -150,9 +148,9 @@ public class MainMenu implements Screen {
 			distortTimer = 0f;
 		}
 		
-		float cameraMod = 0.0001f * (float)Math.sin(stateTime);
-		camera.zoom += cameraMod;
-		camera.rotate(cameraMod);
+		float mod = 5f * (float)Math.sin(stateTime);
+		//camera.zoom += cameraMod;
+		//camera.rotate(cameraMod);
 		camera.update();
         batch.setProjectionMatrix(camera.combined);
 		
@@ -162,7 +160,7 @@ public class MainMenu implements Screen {
 		batch.begin();
 		
 		if(!distortLogo)
-		batch.draw(MenuManager.logoLarge, logoPos.x, logoPos.y, logoScaled.x, logoScaled.y);
+		batch.draw(MenuManager.logoLarge, logoPos.x, logoPos.y, logoScaled.x + mod, logoScaled.y + mod);
 		else
 		batch.draw(MenuManager.distortLogo.getKeyFrame(stateTime, true), logoPos.x, logoPos.y, logoScaled.x, logoScaled.y);
 

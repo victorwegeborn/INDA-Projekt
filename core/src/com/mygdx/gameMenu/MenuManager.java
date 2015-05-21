@@ -15,6 +15,7 @@ public class MenuManager {
 	public static float framerate = 1/4f;
 	public static TextureAtlas mainMenuSheet = new TextureAtlas(Gdx.files.internal("sprites/texts/menuitems.txt"));
 	public static TextureAtlas lobbySheet = new TextureAtlas(Gdx.files.internal("sprites/texts/lobbyitems.txt"));
+	public static TextureAtlas joinSheet = new TextureAtlas(Gdx.files.internal("sprites/texts/joinitems.txt"));
 
 	public static Animation hostIdle = new Animation(framerate, mainMenuSheet.findRegions("hostidle"));
 	public static Animation hostActive = new Animation(framerate, mainMenuSheet.findRegions("hostactive"));
@@ -36,6 +37,14 @@ public class MenuManager {
 	public static Animation backIdle = new Animation(framerate, lobbySheet.findRegions("backidle"));
 	public static Animation backActive = new Animation(framerate, lobbySheet.findRegions("backactive"));
 
+	
+	public static TextureRegion makeConnect = joinSheet.findRegion("connect");
+	public static TextureRegion connectError = joinSheet.findRegion("connecterror");
+	public static TextureRegion gameFull = joinSheet.findRegion("gamefull");
+	public static TextureRegion pressToReturn = joinSheet.findRegion("presstoreturn");
+	public static Animation makeIdle = new Animation(framerate, joinSheet.findRegions("makeidle"));
+	public static Animation makeActive = new Animation(framerate, joinSheet.findRegions("makeactive"));
+	
 
 	/**
 	 * Returns the specified player status texture 

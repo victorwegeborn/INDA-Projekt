@@ -22,6 +22,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldListener;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldStyle;
+import com.mygdx.game.B2DVars;
 import com.mygdx.game.GameClient;
 import com.mygdx.game.SoundManager;
 import com.mygdx.screen.MainGame;
@@ -44,7 +45,7 @@ public class JoinGame implements Screen {
 	private int[] selected;
 	
 	private Sound input, select, start;
-	
+	private float stateTime;
 	private String ipString;
 	private final int maxStringSize = 15;
 	private BitmapFont font;
@@ -56,7 +57,7 @@ public class JoinGame implements Screen {
 	public JoinGame(final MainGame game) {
 		this.game =  game;
 		
-		
+		stateTime = 0f;
 		input = SoundManager.walk3;
 		select = SoundManager.walk1;
 		
@@ -65,7 +66,7 @@ public class JoinGame implements Screen {
 		buttonTexture = new Texture(Gdx.files.internal("sprites/buttons/ph_buttons_Join.png"));
 		batch = new SpriteBatch();
 		font = new BitmapFont();
-		font.setColor(Color.BLACK);
+		font.setColor(Color.WHITE);
 		//Make regions out of texture ( texture,      X, Y, width, height)
 		//Order is from left to right and down.
 		regions[0] = new TextureRegion(buttonTexture, 0,   320,  512, 128); 
@@ -158,17 +159,26 @@ public class JoinGame implements Screen {
 
 	@Override
 	public void render(float delta) {
+		stateTime += Gdx.graphics.getDeltaTime();
 		Gdx.gl.glClearColor(0,0,0,0);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		
 		batch.begin();
-		batch.draw(regions[0], Gdx.graphics.getWidth()/2 - 256, Gdx.graphics.getHeight()/2 - 64);
+		batch.draw(MenuManager.makeConnect, Gdx.graphics.getWidth()/2 - 128, Gdx.graphics.getHeight()/2 + 64);
 		//Buttons
 		batch.draw(regions[5], cursorXPos, Gdx.graphics.getHeight()/2 - 12);
 		font.draw(batch, ipString, Gdx.graphics.getWidth()/2 - 68, Gdx.graphics.getHeight()/2 + 6);
 		font.draw(batch, "ENTER IP:", Gdx.graphics.getWidth()/2 - 152, Gdx.graphics.getHeight()/2 + 6);
-		batch.draw(regions[1 + selected[0]], Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight()/2 - 128);
-		batch.draw(regions[3 + selected[1]], Gdx.graphics.getWidth()/2 + 128, Gdx.graphics.getHeight()/2 - 128);
+	
+		if(selected[0] == 1)
+			batch.draw(MenuManager.makeActive.getKeyFrame(stateTime, true), Gdx.graphics.getWidth()/2,  Gdx.graphics.getHeight()/2 - 128);
+		else
+			batch.draw(MenuManager.makeIdle.getKeyFrame(stateTime, true), Gdx.graphics.getWidth()/2,  Gdx.graphics.getHeight()/2 - 128);
+		
+		if(selected[1] == 1)
+			batch.draw(MenuManager.backActive.getKeyFrame(stateTime, true), Gdx.graphics.getWidth()/2 + 128, Gdx.graphics.getHeight()/2 - 128);
+		else
+			batch.draw(MenuManager.backIdle.getKeyFrame(stateTime, true), Gdx.graphics.getWidth()/2 + 128, Gdx.graphics.getHeight()/2 - 128);
 		batch.end();
 
 		
@@ -215,11 +225,7 @@ public class JoinGame implements Screen {
 						game.setScreen(lobby);
 
 					} catch (IOException e) {
-						if(e instanceof UnknownHostException)
-						System.out.println("Can't find host");
-						
-						else
-						System.out.println("Connection error!");
+							game.setScreen(new ErrorScreen(game, B2DVars.ERROR_UNKNOWN));
 					}
 						break;
 						case 1: game.setScreen(new MainMenu(game));

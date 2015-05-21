@@ -46,6 +46,8 @@ public final class B2DVars {
 	public static final int PLAYER_CONNECTED = 1;
 	public static final int PLAYER_READY = 2;
 
+	public static final int ERROR_GAME_FULL = 1;
+	public static final int ERROR_UNKNOWN = 2;
 	
 	
 	

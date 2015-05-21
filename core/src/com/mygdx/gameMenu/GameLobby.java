@@ -317,6 +317,7 @@ public class GameLobby implements Screen {
 	}
 	
 	private void StartGame(){
+		
 		if(server.AllPlayersReady()){
 			
 			//Set up local client
@@ -329,8 +330,7 @@ public class GameLobby implements Screen {
 			
 				
 			} catch (IOException e) {
-				System.out.println("Could not connect to own server.");
-				e.printStackTrace();
+				game.setScreen(new ErrorScreen(game, B2DVars.ERROR_UNKNOWN));
 				} 
 			}
 	}
