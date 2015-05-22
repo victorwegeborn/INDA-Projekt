@@ -59,7 +59,7 @@ public class GameServer {
 	
 private void SetupServer(){
 		
-		server = new Server(16384, 2048) {
+		server = new Server() {
 			
 			
 			protected Connection newConnection () {	
