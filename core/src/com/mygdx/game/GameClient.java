@@ -133,8 +133,10 @@ public class GameClient {
 					if(gameEngine != null){
 					ShakeUpdate s = (ShakeUpdate)o;
 					gameEngine.SetShakeFactor(s.shakeFactor);
-					SoundManager.explosion1.setPosition(0);
-					SoundManager.explosion1.play();
+					if(B2DVars.SOUND){
+						SoundManager.explosion1.setPosition(0);
+						SoundManager.explosion1.play();
+					}
 					}
 				}
 				
@@ -147,7 +149,9 @@ public class GameClient {
 				}
 				
 				if(o instanceof StartGame){
+					if(B2DVars.SOUND)
 					game.PlayBGMusic(SoundManager.bg1);
+					
 					game.setScreen(gameEngine);
 					}
 				if(o instanceof GameOver){
@@ -158,17 +162,23 @@ public class GameClient {
 				if(o instanceof PowerUpSound){
 					PowerUpSound p = (PowerUpSound)o;
 					if(p.bomb){
-					SoundManager.powerup1.setPosition(0f);
-					SoundManager.powerup1.play();
+					if(B2DVars.SOUND){
+						SoundManager.powerup1.setPosition(0f);
+						SoundManager.powerup1.play();
+					}
 					}
 					else{
-					SoundManager.powerup2.setPosition(0f);
-					SoundManager.powerup2.play();
+					if(B2DVars.SOUND){
+						SoundManager.powerup2.setPosition(0f);
+						SoundManager.powerup2.play();
+						}
 					}
 				}
 				
 				if(o instanceof BombSound)
-					SoundManager.walk4.play(1f);
+					if(B2DVars.SOUND){
+						SoundManager.walk4.play(1f);
+					}
 					
 				if(o instanceof LobbyUpdate){
 					LobbyUpdate l = (LobbyUpdate)o;

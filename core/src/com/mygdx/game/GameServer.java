@@ -59,7 +59,7 @@ public class GameServer {
 	
 private void SetupServer(){
 		
-		server = new Server(B2DVars.NETWORK_SERVER_BUFFERSIZE, 2048) {
+		server = new Server(16384, 2048) {
 			
 			
 			protected Connection newConnection () {	
@@ -132,7 +132,10 @@ private void SetupServer(){
 					//Log.info("Drop Bomb-request received!");
 					if(bombTimer < 0){
 						gameEngine.DropBomb(player);
-						server.sendToAllTCP(new BombSound());
+						
+						if(B2DVars.SOUND)
+							server.sendToAllTCP(new BombSound());
+						
 						bombTimer = bombTime;
 					}
 				}
