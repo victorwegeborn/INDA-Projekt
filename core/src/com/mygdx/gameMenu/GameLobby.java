@@ -170,7 +170,7 @@ public class GameLobby implements Screen {
 			}
 
 			try {
-				server = new GameServer(this);
+				server = new GameServer(game, this);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -318,12 +318,13 @@ public class GameLobby implements Screen {
 	
 	private void StartGame(){
 		
-		if(server.AllPlayersReady()){
+		if(server.ConnectedPlayers() > 1 && server.AllPlayersReady()){
 			
 			//Set up local client
 			try {
 				client = new GameClient(game, "localhost");
 				client.SetGameLobby(this);
+				client.SetServerReference(server);
 		
 				server.StartGame(); // Start game
 				game.setScreen(client.gameEngine); //Change to client

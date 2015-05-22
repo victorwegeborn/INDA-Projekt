@@ -30,6 +30,8 @@ private State state;
 private PlayerData data;
 public Body body;
 
+private boolean remove;
+
 private int playerNumber;
 
 //Player sprites and animation
@@ -40,7 +42,7 @@ leftAnim, leftIdleAnim, rightAnim, rightIdleAnim;
 //Player game attributes
 private int bombCapacity;
 private int droppedBombs;
-private ArrayList<Bomb> activeBombs;
+private int activeBombs;
 private Iterator bombIterator;
 private int firePower;
 private int speedCount;
@@ -75,7 +77,7 @@ public Player(int player, Vector2 position, World world){
 	speedCount = 1;
 	killed = false;
 	
-	activeBombs = new ArrayList<Bomb>();
+	activeBombs = 0;
 	
 	//Create player body
 	BodyDef bdef = new BodyDef();
@@ -157,8 +159,11 @@ public Player(int player, Vector2 position, World world){
 	}
 	
 	public void IncrementBombCapacity(){
-		if(bombCapacity < B2DVars.MAX_BOMBCAPACITY)
+		if(bombCapacity < B2DVars.MAX_BOMBCAPACITY){
 			bombCapacity++;
+			
+		data.IncrementFirePower();
+		}
 	}
 	
 	public void SetFirePower(int f){
@@ -172,8 +177,11 @@ public Player(int player, Vector2 position, World world){
 	}
 	
 	public void IncrementFirePower(){
-		if(firePower < B2DVars.MAX_FIREPOWER)
+		if(firePower < B2DVars.MAX_FIREPOWER){
 			firePower++;
+		
+		data.IncrementFirePower();
+		}
 	}
 	
 	public int GetPlayerNumber(){
@@ -184,16 +192,28 @@ public Player(int player, Vector2 position, World world){
 		return firePower;
 	}
 	
-	public void RegisterDroppedBomb(Bomb b){
-		activeBombs.add(b);
+	public void IncrementActiveBombs(){
+		activeBombs++;
+	}
+	
+	public void DecrementActiveBombs(){
+		activeBombs--;
 	}
 	
 	public boolean CanDropBomb(){
-		return activeBombs.size() < data.GetBombCapacity();
+		return activeBombs < data.GetBombCapacity();
 	}
 
 	public void SetState(State state){
 		this.state = state;
+	}
+	
+	public void Remove(){
+		remove = true;
+	}
+	
+	public boolean RemoveThis(){
+		return remove;
 	}
 	
 	public void ClearState(){
@@ -203,7 +223,6 @@ public Player(int player, Vector2 position, World world){
 	public void Update(){
 		killed = data.Dead();
 		UpdatePlayerData();
-		UpdateActiveBombs();
 	}
 	
 	public void Reset(){
@@ -211,9 +230,10 @@ public Player(int player, Vector2 position, World world){
 		killed = false;
 		firePower = 1;
 		bombCapacity = 1;
+		data.Reset();
 		body.setActive(true);
 		body.setTransform(spawnPosition, 0);
-		activeBombs.clear();
+		activeBombs = 0;
 	}
 	
 	
@@ -247,17 +267,7 @@ public Player(int player, Vector2 position, World world){
 	/**
 	 * Check all bombs for activity
 	 */
-	private void UpdateActiveBombs(){
-		bombIterator = activeBombs.iterator();
-		while(bombIterator.hasNext()){
-			Bomb b = (Bomb)bombIterator.next();
-			
-			//If this bomb is no longer active, removes it from list
-			if(!b.active){
-				bombIterator.remove(); 
-			}
-		}
-	}
+	
 	
 	public Animation Animation(){
 		switch(state){
@@ -271,8 +281,7 @@ public Player(int player, Vector2 position, World world){
 			return body.getLinearVelocity().x > 0 ? rightAnim : rightIdleAnim;
 		default:
 			return downAnim;
-		}
-		
+		}	
 	}
 	
 	public void Kill(){
@@ -286,5 +295,4 @@ public Player(int player, Vector2 position, World world){
 	public PlayerData GetData(){
 		return data;
 	}
-
 }

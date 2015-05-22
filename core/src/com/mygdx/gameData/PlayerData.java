@@ -47,6 +47,11 @@ public class PlayerData extends ObjectData{
 		this.state = state;
 	}
 	
+	public void Reset(){
+		bombCapacity = 1;
+		firePower = 1;
+	}
+	
 	public int State(){
 		return state;
 	}

@@ -2,6 +2,7 @@ package com.mygdx.screen;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.mygdx.game.CoreGame;
 import com.mygdx.game.ClientEngine;
@@ -18,12 +19,14 @@ public class MainGame extends Game{
 @Override
 public void create() {
 	game = this;
+	SoundManager.SetupSounds();
 	setScreen(new com.mygdx.gameMenu.MainMenu(game));
 	}
 
-public void PlayBGMusic(Sound sound){
+public void PlayBGMusic(Music song){
 	SoundManager.StopAllBG();
-	sound.play();
+	song.play();
+	song.setLooping(true);
 }
 
 @Override

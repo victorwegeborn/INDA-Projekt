@@ -79,6 +79,12 @@ public class ErrorScreen implements Screen {
 		case B2DVars.ERROR_UNKNOWN:
 			batch.draw(MenuManager.connectError, Gdx.graphics.getWidth()/2 - 128, Gdx.graphics.getHeight()/2);
 			break;
+		case B2DVars.ERROR_ALL_PLAYERS_LEFT:
+			batch.draw(MenuManager.allPlayersLeft, Gdx.graphics.getWidth()/2 - 128, Gdx.graphics.getHeight()/2);
+			break;
+		case B2DVars.ERROR_HOST_LEFT:
+			batch.draw(MenuManager.hostLeft, Gdx.graphics.getWidth()/2 - 128, Gdx.graphics.getHeight()/2);
+			break;
 		default:
 			batch.draw(MenuManager.connectError, Gdx.graphics.getWidth()/2 - 128, Gdx.graphics.getHeight()/2);
 	}	

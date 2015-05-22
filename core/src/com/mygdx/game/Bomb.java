@@ -19,6 +19,7 @@ public class Bomb {
 	private float timeToDetonate;
 	private float timer;
 	
+	private Player owner;
 	
 	//Pool variables
 	public boolean active;
@@ -27,7 +28,6 @@ public class Bomb {
 	
 	private BombData data;
 
-	public Player owner;
 	private Vector2 poolPosition;
 	public Body body; //Body for easy positioning in world
 	
@@ -85,6 +85,14 @@ public class Bomb {
 	
 	public int GetFirePower(){
 		return firePower;
+	}
+	
+	public void SetOwner(Player player){
+		owner = player;
+	}
+	
+	public Player GetOwner(){
+		return owner;
 	}
 	
 	public void SetFirePower(int f){

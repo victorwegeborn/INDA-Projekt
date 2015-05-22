@@ -5,8 +5,10 @@ import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
+import com.esotericsoftware.kryonet.Server;
 import com.mygdx.gameData.ItemData;
 import com.mygdx.gameData.PlayerData;
+import com.mygdx.NGame.NNetwork.PowerUpSound;
 
 
 /**
@@ -18,6 +20,12 @@ import com.mygdx.gameData.PlayerData;
  */
 public class ContactHandler implements ContactListener {
 
+	NetworkEngine server;
+	
+	public ContactHandler(NetworkEngine server){
+		this.server = server;
+	}
+	
 	@Override
 	public void beginContact(Contact c) {
 		//System.out.println("COLLISION DETECTED");
@@ -80,6 +88,7 @@ public class ContactHandler implements ContactListener {
 	private void HandleItem(Fixture a, Fixture b){
 		PlayerData player;
 		ItemData item;
+		PowerUpSound p = new PowerUpSound();
 		
 		if(a.getFilterData().categoryBits == B2DVars.BIT_PLAYER){
 			player = (PlayerData)a.getBody().getUserData();
@@ -88,12 +97,16 @@ public class ContactHandler implements ContactListener {
 			if(item.ItemType() == B2DVars.FIRE_POWERUP){
 				player.IncrementFirePower();
 				item.FlagReset();
+				p.bomb = false;
+				server.server.sendToAllTCP(p);
 				return;
 			}
 				
 			if(item.ItemType() == B2DVars.BOMB_POWERUP){
 				player.IncrementBombCapacity();
 				item.FlagReset();
+				p.bomb = true;
+				server.server.sendToAllTCP(p);
 				return;
 			}
 		}
@@ -105,12 +118,16 @@ public class ContactHandler implements ContactListener {
 			if(item.ItemType() == B2DVars.FIRE_POWERUP){
 				player.IncrementFirePower();
 				item.FlagReset();
+				p.bomb = false;
+				server.server.sendToAllTCP(p);
 				return;
 			}
 				
 			if(item.ItemType() ==  B2DVars.BOMB_POWERUP){
 				player.IncrementBombCapacity();
 				item.FlagReset();
+				p.bomb = true;
+				server.server.sendToAllTCP(p);
 				return;
 			}
 		}

@@ -72,12 +72,17 @@ public class ItemPlacer {
 	}
 	
 	public static void DropBomb(Player player){
+
+		System.out.println("player: " + player.GetPlayerNumber() + " firepower: " + player.GetData().GetFirePower() + " bomb capacity: " + player.GetData().GetBombCapacity()
+				+ " can drop bomb: " + player.CanDropBomb());
+
 		
 		if(!player.CanDropBomb())
 			return;
 		
-		BombQuery bombQuery = new BombQuery();
+//		BombQuery bombQuery = new BombQuery();
 		int firePower = player.GetData().GetFirePower();
+		System.out.println("player: " + player.GetPlayerNumber() + " firepower: " + firePower);
 		Vector2 bombPosition = CoordinateConverter.quantizePositionToGrid(player.body.getPosition());
 //		WORLD.QueryAABB(bombQuery, bombPosition.x - 0.2f, bombPosition.y - 0.2f, bombPosition.x + 0.2f, bombPosition.y + 0.2f);
 //		
@@ -88,8 +93,7 @@ public class ItemPlacer {
 		
 		for(Bomb bomb : ItemPool.bombs){
 			if(!bomb.active){
-				
-				
+
 				//Flag bomb as active, set state to Ticking, and set firepower to players current firepower
 				bomb.active = true;
 				bomb.state = Bomb.State.Ticking;
@@ -97,8 +101,8 @@ public class ItemPlacer {
 				player.body.getPosition();
 				//Quantize player position to nearest tile center and place bomb there
 				bomb.body.setTransform(bombPosition, 0);
-				
-				player.RegisterDroppedBomb(bomb);
+				bomb.SetOwner(player);
+				player.IncrementActiveBombs();
 				return;
 			}
 			

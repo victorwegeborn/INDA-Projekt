@@ -71,9 +71,11 @@ public class NetworkEngine {		//implements Screen {
 	
 	
 	public static World WORLD; // Physics world
-	private static ContactHandler contactHandler = new ContactHandler();
+	private static ContactHandler contactHandler;
 	private static WorldQuery worldQuery;
 	private static FireRayCastHandler fireRayCast = new FireRayCastHandler();
+	
+	public int errorCode;
 	
 	private Player player;
 	private WinScreenUpdate winUpdate = new WinScreenUpdate();
@@ -82,6 +84,8 @@ public class NetworkEngine {		//implements Screen {
 	public static Body FRICTION; // Body used to maintain friction between players and floor
 	private static float timeStep = 1f / 60f; // Interval of physics simulation
 
+	private boolean gameOver;
+	
 	//Debug-tools
 	private Box2DDebugRenderer b2dr;
 	private ShapeRenderer sRend;
@@ -130,6 +134,7 @@ public class NetworkEngine {		//implements Screen {
 	
 	public NetworkEngine(){
 		create();
+		gameOver = false;
 	}
 	
 	/**
@@ -163,11 +168,21 @@ public class NetworkEngine {		//implements Screen {
 	}
 	
 	public void RemovePlayer(int player){
+		if(player < GameStateManager.allPlayers.size()){
+			GameStateManager.allPlayers.get(player - 1).Remove();
+		}
 		
+		
+		if(GameStateManager.allPlayers.size() < 2){
+			gameOver = true;
+			errorCode = B2DVars.ERROR_ALL_PLAYERS_LEFT;
+		}
 	}
 	
 	
-	
+	public boolean GameOver(){
+		return gameOver;
+	}
 	
 	private void SetupCamera(){
 
@@ -214,6 +229,7 @@ public class NetworkEngine {		//implements Screen {
 		 * the world. 0, 0 = no gravity in either direction. The boolean value
 		 * removes inactive bodies from physics calculation, be sure to leave as true
 		 */
+		contactHandler = new ContactHandler(this);
 		WORLD = new World(new Vector2(0, 0), true);
 		WORLD.setContactListener(contactHandler);
 		worldQuery = new WorldQuery();
@@ -324,13 +340,20 @@ public class NetworkEngine {		//implements Screen {
 			shake.update(dt, camera, cameraCenterPos);
 		
 		SendActiveObjects();
+		
+		ClearRemovedPlayers();
 
 		
 	}
 	
 
+
 	
 	public void render() {
+		
+		if(GameStateManager.allPlayers.size() < 2) 
+			return;
+		
 		
 		//System.out.println("Render called! Deltatime: " + Gdx.graphics.getDeltaTime());
 		
@@ -416,16 +439,19 @@ public class NetworkEngine {		//implements Screen {
 			
 			}
 			
-			if(GameStateManager.sleepTimer > B2DVars.LEVEL_RESET_SLEEPTIME)
-				boxes = GameStateManager.ResetGame(tileMap, WORLD, boxes);
-				winUpdate.playerNr = GameStateManager.playerWinner;
-				server.sendToAllTCP(winUpdate);
-				sentWinUpdate = false;
-		}
+			if(!gameOver){
+				if(GameStateManager.sleepTimer > B2DVars.LEVEL_RESET_SLEEPTIME)
+					boxes = GameStateManager.ResetGame(tileMap, WORLD, boxes);
+					winUpdate.playerNr = GameStateManager.playerWinner;
+					server.sendToAllTCP(winUpdate);
+					sentWinUpdate = false;
+			
 		
-		if(resetGame){
-			boxes = GameStateManager.ResetGame(tileMap, WORLD, boxes);
-			resetGame = false;
+			if(resetGame){
+					boxes = GameStateManager.ResetGame(tileMap, WORLD, boxes);
+					resetGame = false;
+				}
+			}
 		}
 
 	}
@@ -468,6 +494,14 @@ public class NetworkEngine {		//implements Screen {
 		
 		for(Box b : boxes)
 			b.Update(dt);	
+	}
+	
+	
+	private void ClearRemovedPlayers(){
+		for(Player p : GameStateManager.allPlayers){
+			if(p.RemoveThis())
+				GameStateManager.allPlayers.remove(p);
+		}
 	}
 	
 	private void SendActiveObjects(){
@@ -582,9 +616,7 @@ public class NetworkEngine {		//implements Screen {
 		}
 		break;
 		}
-	
-		if(((MovePlayer) moveData).bomb == Input.Keys.SPACE)
-			ItemPlacer.DropBomb(p);		
+		
 	}
 	}
 	
@@ -654,6 +686,10 @@ public class NetworkEngine {		//implements Screen {
 		}
 	}
 	
+	public void DropBomb(int player){
+		ItemPlacer.DropBomb(GameStateManager.allPlayers.get(player - 1));
+	}
+	
 	private void RenderItems(){
 		float x;
 		float y;
@@ -690,16 +726,13 @@ public class NetworkEngine {		//implements Screen {
 				int firePower = b.GetFirePower();
 				float x = b.detonatePosition.x;
 				float y = b.detonatePosition.y;				
-				System.out.println("detonate: " + x + " " + y);
+
 				float offset = 0.5f;
 				float rayx = x + offset;
 				float rayy = y + offset;
 								
 				ItemPlacer.SetFire(x, y, WORLD);
 
-				if(Gdx.input.isKeyPressed(Input.Keys.F)){
-					System.out.println("position x: " + x + " y:" + y);
-				}
 				
 				Fire fireL = null;
 				Fire fireR = null;
@@ -785,30 +818,10 @@ public class NetworkEngine {		//implements Screen {
 				
 				shake.shake(B2DVars.SHAKE_TIME * firePower); //Screen shakes proportionately to fire power
 				b.detonate = false;
+				b.GetOwner().DecrementActiveBombs();
 				b.GetData().UnflagDetonation();
 			
 		}
 	
-
-		
-
-	private void PrintAllContacts(){
-			Array<Contact> contacts = WORLD.getContactList();
-			
-			for(Contact c : contacts){
-				Fixture fa = c.getFixtureA();
-				Fixture fb = c.getFixtureB();
-				String a = (String)fa.getUserData();
-				String b = (String)fb.getUserData();
-				Vector2 apos = fa.getBody().getPosition();
-				Vector2 bpos = fb.getBody().getPosition();
-			
-				if(a == null || b == null)
-					continue;
-			
-			
-				System.out.println(a + " at position " + apos + " collides with " + b + " at position " + bpos);
-			}
-		}
 	}
 

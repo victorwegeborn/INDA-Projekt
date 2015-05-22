@@ -54,6 +54,7 @@ import com.mygdx.NGame.NNetwork.ItemUpdate;
 import com.mygdx.NGame.NNetwork.MovePlayer;
 import com.mygdx.NGame.NNetwork.PlayerUpdate;
 import com.mygdx.NGame.NNetwork.ShakeUpdate;
+import com.mygdx.NGame.NNetwork.DropBomb;
 import com.mygdx.NGame.NNetwork.WinScreenUpdate;
 import com.mygdx.game.Player.State;
 import com.mygdx.gameData.BombData;
@@ -61,13 +62,18 @@ import com.mygdx.gameData.BoxData;
 import com.mygdx.gameData.FireData;
 import com.mygdx.gameData.ItemData;
 import com.mygdx.gameData.PlayerData;
+import com.mygdx.gameMenu.ErrorScreen;
+import com.mygdx.gameMenu.MainMenu;
+import com.mygdx.gameMenu.MenuManager;
+import com.mygdx.screen.MainGame;
 
 public class ClientEngine implements Screen {
 	SpriteBatch batch;
 	Texture img;
 	
-	private static boolean renderWorld = false;
-	
+	//The current game
+	private MainGame game;
+	private GameServer server;
 	private static float timeStep = 1f / 60f; // Interval of physics simulation
 	
 	//Debug-tools
@@ -84,7 +90,7 @@ public class ClientEngine implements Screen {
 	private Vector2 cameraCenterPos;
 	private static Shake shake = new Shake(); // Shaking camera effect
 	//
-
+	
 	// The level
 	private TiledMap tileMap;
 	private BatchTiledMapRenderer batch_tiledMapRenderer;
@@ -99,6 +105,8 @@ public class ClientEngine implements Screen {
 	private Animation bombAnim, firePowAnim, bombPowAnim;
 	private int showWinScreen;
 	//
+	
+	private boolean quitQuery;
 	
 	//Animation for a player
 	static class PlayerAnimator{
@@ -127,21 +135,37 @@ public class ClientEngine implements Screen {
 	private FireUpdate activeFires;
 	private ItemUpdate activeItems;
 	
+	public boolean gameOver;
+	
+	private boolean winMusic;
+	
 
 	float stateTime;
 	
+	public int errorCode;
 	
 	private Client client;
 	private static String hostIP = "localhost";
 	private static MovePlayer mp = new MovePlayer();
 	private static FPSLogger fps = new FPSLogger();
 	
-	public ClientEngine(Client client, String hostIP){
+	public ClientEngine(MainGame game, Client client, String hostIP){
+		errorCode = -1;
+		this.game = game;
 		this.client = client;
 		this.hostIP = hostIP;
+		gameOver = false;
 		create();
 	}
 
+	public void GameOver(int errorCode){
+		this.errorCode = errorCode;
+		gameOver = true;
+	}
+	
+	public void SetServerReference(GameServer server){
+		this.server = server;
+	}
 	
 	public void UpdateBoxes(BoxUpdate activeBoxes){
 		this.activeBoxes = activeBoxes;
@@ -305,6 +329,7 @@ public class ClientEngine implements Screen {
 		
 	}
 	
+	
 	private PlayerAnimator CreatePlayerAnimation(int playernumber){
 
 		String sheetFile = "sprites/characters/ninja" + playernumber + ".txt";
@@ -386,13 +411,49 @@ public class ClientEngine implements Screen {
 
 	@Override
 	public void render(float dt) {
+		if(gameOver){
+			if(errorCode == B2DVars.ERROR_ALL_PLAYERS_LEFT || errorCode == B2DVars.ERROR_HOST_LEFT)
+				game.setScreen(new ErrorScreen(game, errorCode));
+			else
+				game.setScreen(new MainMenu(game));
+		}
+		
+		if(showWinScreen > 0 && !winMusic){
+			SoundManager.win.setPosition(0f);
+			SoundManager.StopAllBG();
+			SoundManager.win.play();
+			winMusic = true;
+		}
+		
+		if(showWinScreen < 0 && winMusic){
+			SoundManager.bg1.setPosition(0f);
+			SoundManager.StopAllBG();
+			SoundManager.bg1.play();
+			winMusic = false;
+		}
+			
+		
 		//System.out.println("Rendering!");
 		
 		Update(dt);
 		
 		if (Gdx.input.isKeyJustPressed(Input.Keys.Q)){
-			Gdx.app.exit();
+			quitQuery = true;
 		}
+		
+		
+	if(quitQuery){
+		if(Gdx.input.isKeyPressed(Input.Keys.Y)){
+			if(server != null)
+				server.StopServer();
+						
+			game.setScreen(new MainMenu(game)); 
+			gameOver = true;
+		}
+			
+		if(Gdx.input.isKeyPressed(Input.Keys.N))
+			quitQuery = false;
+	}
 		
 		// Update statetime and physics
 		stateTime += Gdx.graphics.getDeltaTime();
@@ -427,6 +488,9 @@ public class ClientEngine implements Screen {
 		
 		RenderFire();
 		
+		if(quitQuery)
+			batch.draw(MenuManager.leaveGame, 4.5f, 4, MenuManager.leaveGame.getRegionWidth() / 32f, MenuManager.leaveGame.getRegionHeight() / 32f);
+		
 		batch.end();
 		//Batch END-----------------------------------------------------***
 		
@@ -436,7 +500,6 @@ public class ClientEngine implements Screen {
 		
 		if(showWinScreen > 0){
 			Texture winScreen;	
-			System.out.println(showWinScreen);
 
 			switch(showWinScreen){
 			case 1:
@@ -622,7 +685,7 @@ public class ClientEngine implements Screen {
 		MovePlayer mpUpdate = new MovePlayer();
 					
 			if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){
-				mpUpdate.bomb = Input.Keys.SPACE;
+				client.sendTCP(new DropBomb());
 			}
 
 			if (Gdx.input.isKeyPressed(Input.Keys.A) && !changed){		
@@ -640,8 +703,8 @@ public class ClientEngine implements Screen {
 			if (Gdx.input.isKeyPressed(Input.Keys.S) && !changed) {
 					mpUpdate.direction = Input.Keys.S;
 			}
-			
-			if(mp.direction != mpUpdate.direction || mp.bomb != mpUpdate.bomb) {
+		
+			if(mp.direction != mpUpdate.direction) {
 				client.sendTCP(mpUpdate);
 				mp = mpUpdate;
 			}

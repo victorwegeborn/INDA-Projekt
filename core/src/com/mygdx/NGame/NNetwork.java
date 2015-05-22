@@ -70,12 +70,15 @@ public class NNetwork {
 		kryo.register(LobbyUpdate.class);
 		kryo.register(int[].class);
 		kryo.register(RequestLobbyUpdate.class);
+		kryo.register(GameOver.class);
+		kryo.register(DropBomb.class);
+		kryo.register(PowerUpSound.class);
+		kryo.register(BombSound.class);
 	}
 	
 	public static class RequestConnection {}
 	public static class AcceptConnection {}
-	public static class MovePlayer { public int direction = -1;
-									 public int bomb = -1;}
+	public static class MovePlayer { public int direction = -1;}
 	public static class UpdatedPlayer { public NPlayer updatedPlayer; }
 	public static class BoxUpdate { public ArrayList<BoxData> boxes; }
 	public static class FireUpdate { public ArrayList<FireData> fires; }
@@ -87,10 +90,14 @@ public class NNetwork {
 	public static class PlayerReady {}
 	public static class StartGame {}
 	public static class PlayerReadyFromServer{public int player;}
+	public static class GameOver{public int errorcode; }
 	public static class PlayerEmptyFromServer{public int player;}
 	public static class PlayerConnectedFromServer{public int player;}
 	public static class LobbyUpdate{public int[] playerStatus;}
-	public static class RequestLobbyUpdate{};
+	public static class RequestLobbyUpdate{}
+	public static class PowerUpSound{ public boolean bomb;}
+	public static class DropBomb{}
+	public static class BombSound{}
 	
 	// This holds per connection state.
 	public static class NPlayerConnection extends Connection {

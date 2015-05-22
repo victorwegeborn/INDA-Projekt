@@ -16,7 +16,9 @@ public class MenuManager {
 	public static TextureAtlas mainMenuSheet = new TextureAtlas(Gdx.files.internal("sprites/texts/menuitems.txt"));
 	public static TextureAtlas lobbySheet = new TextureAtlas(Gdx.files.internal("sprites/texts/lobbyitems.txt"));
 	public static TextureAtlas joinSheet = new TextureAtlas(Gdx.files.internal("sprites/texts/joinitems.txt"));
+	public static TextureAtlas msgSheet = new TextureAtlas(Gdx.files.internal("sprites/texts/msgitems.txt"));
 
+	
 	public static Animation hostIdle = new Animation(framerate, mainMenuSheet.findRegions("hostidle"));
 	public static Animation hostActive = new Animation(framerate, mainMenuSheet.findRegions("hostactive"));
 	
@@ -44,6 +46,12 @@ public class MenuManager {
 	public static TextureRegion pressToReturn = joinSheet.findRegion("presstoreturn");
 	public static Animation makeIdle = new Animation(framerate, joinSheet.findRegions("makeidle"));
 	public static Animation makeActive = new Animation(framerate, joinSheet.findRegions("makeactive"));
+	
+	public static TextureRegion allPlayersLeft = msgSheet.findRegion("allplayersleft");
+	public static TextureRegion hostLeft = msgSheet.findRegion("hostleft");
+	
+	public static TextureRegion leaveGame = msgSheet.findRegion("leavegame");
+	public static TextureRegion leaveGameHost = msgSheet.findRegion("leavegamehost");
 	
 
 	/**

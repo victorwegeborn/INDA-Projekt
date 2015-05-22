@@ -246,7 +246,7 @@ public class CoreGame implements Screen {
 	 */
 	
 	private void SetupSound(){
-	 SoundManager.bg1.loop();
+	 SoundManager.bg1.play();
 	}
 
 	private void SetupMap(String map){

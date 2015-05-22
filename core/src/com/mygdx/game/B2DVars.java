@@ -48,6 +48,9 @@ public final class B2DVars {
 
 	public static final int ERROR_GAME_FULL = 1;
 	public static final int ERROR_UNKNOWN = 2;
+	public static final int ERROR_ALL_PLAYERS_LEFT = 3;
+	public static final int ERROR_HOST_LEFT = 4;
+
 	
 	
 	

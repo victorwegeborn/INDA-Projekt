@@ -18,10 +18,16 @@ import com.mygdx.NGame.NNetwork.PlayerReadyFromServer;
 import com.mygdx.NGame.NNetwork.PlayerEmptyFromServer;
 import com.mygdx.NGame.NNetwork.PlayerConnectedFromServer;
 import com.mygdx.NGame.NNetwork.RequestLobbyUpdate;
+import com.mygdx.NGame.NNetwork.DropBomb;
+import com.mygdx.NGame.NNetwork.GameOver;
+import com.mygdx.NGame.NNetwork.BombSound;
 import com.mygdx.gameMenu.GameLobby;
+import com.mygdx.gameMenu.MainMenu;
+import com.mygdx.screen.MainGame;
 
 public class GameServer {
 	
+	private MainGame game;
 	private NetworkEngine gameEngine;
 	private Server server;
 	private int playerCount;
@@ -31,7 +37,11 @@ public class GameServer {
 	private GameLobby lobby;
 	private Thread updatePhysics;
 	
-	public GameServer(GameLobby lobby) throws IOException {
+	private float bombTimer;
+	private static float bombTime = 0.2f;
+	
+	public GameServer(MainGame game, GameLobby lobby) throws IOException {
+		this.game = game;
 		gameEngine = new NetworkEngine();
 		this.lobby = lobby;
 		SetupServer();
@@ -39,6 +49,8 @@ public class GameServer {
 		hostServer = true;
 		playerReady = new boolean[4];
 		gameStarted = false;
+		
+		bombTimer = bombTime;
 		
 		playerCount = 0; 	//Host is included by default and flagged ready
 		playerReady[0] = true;
@@ -48,6 +60,7 @@ public class GameServer {
 private void SetupServer(){
 		
 		server = new Server() {
+			
 			protected Connection newConnection () {	
 				
 				NPlayerConnection c = new NPlayerConnection();
@@ -60,14 +73,17 @@ private void SetupServer(){
 					assignedPlayerNumber = -1;  //-1 = Spectator
 				}
 				
-				Log.info("Current player count: " + playerCount);
+				//Log.info("Current player count: " + playerCount);
 				
 				c.player = assignedPlayerNumber;
-				Log.info("Assigned player number: " + assignedPlayerNumber);
+				//Log.info("Assigned player number: " + assignedPlayerNumber);
 			
 				return c;
 			}
 		};
+
+		Log.set(Log.LEVEL_WARN);
+
 		
 		//Register all packages that will be sent between server and client
 		NNetwork.register(server);
@@ -80,40 +96,48 @@ private void SetupServer(){
 					c.close();
 				
 				if(c instanceof NPlayerConnection){
-				Log.info("[SERVER] player connecting");
-				NPlayerConnection playercon = (NPlayerConnection)c;
+			//	Log.info("[SERVER] player connecting");
+					NPlayerConnection playercon = (NPlayerConnection)c;
 				
 				
-				lobby.PlayerConnected(playercon.player);
-				lobby.PlayerReady(playercon.player + 1);
-				LobbyUpdate lobbyUpdate = new LobbyUpdate();
-				lobbyUpdate.playerStatus = lobby.GetLobbyPlayerStatus();
-				server.sendToAllTCP(lobbyUpdate);
+					lobby.PlayerConnected(playercon.player);
+					lobby.PlayerReady(playercon.player + 1);
+					LobbyUpdate lobbyUpdate = new LobbyUpdate();
+					lobbyUpdate.playerStatus = lobby.GetLobbyPlayerStatus();
+					server.sendToAllTCP(lobbyUpdate);
 				}
 			}
 
 					
 			public void disconnected (Connection c) {
-				Log.info("[SERVER] player disconnecting");
+			//	Log.info("[SERVER] player disconnecting");
+				
 				if(c instanceof NPlayerConnection){
-				NPlayerConnection player = (NPlayerConnection)c;
-				lobby.PlayerEmpty(player.player);
-				LobbyUpdate lobbyUpdate = new LobbyUpdate();
-				lobbyUpdate.playerStatus = lobby.GetLobbyPlayerStatus();
-				server.sendToAllTCP(lobbyUpdate);
-				gameEngine.RemovePlayer(player.player);
+					NPlayerConnection player = (NPlayerConnection)c;
+					lobby.PlayerEmpty(player.player);
+					LobbyUpdate lobbyUpdate = new LobbyUpdate();
+					lobbyUpdate.playerStatus = lobby.GetLobbyPlayerStatus();
+					server.sendToAllTCP(lobbyUpdate);
+					gameEngine.RemovePlayer(player.player);
 				}
 			}
 
 			public void received (Connection c, Object o) {
 				NPlayerConnection con = (NPlayerConnection)c;
-				int player = con.player;
-				
-				Log.info("Package received from player: " + player);
+				int player = con.player;		
+				//Log.info("Package received from player: " + player);
 
+				if(o instanceof DropBomb){
+					//Log.info("Drop Bomb-request received!");
+					if(bombTimer < 0){
+						gameEngine.DropBomb(player);
+						server.sendToAllTCP(new BombSound());
+						bombTimer = bombTime;
+					}
+				}
 							
 				if(o instanceof MovePlayer){
-					Log.info("Move data received");
+					//Log.info("Move data received");
 					if(gameStarted)
 					gameEngine.currentMovePlayer[player - 1] = (com.mygdx.NGame.NNetwork.MovePlayer)o;
 					
@@ -135,9 +159,8 @@ private void SetupServer(){
 					lobbyUpdate.playerStatus = lobby.GetLobbyPlayerStatus();
 					server.sendToAllTCP(lobbyUpdate);
 				}
-				
-				
 			}
+		
 		});
 				
 			try {
@@ -169,7 +192,12 @@ private void SetupServer(){
 	public void StopServer(){
 		hostServer = false;
 		gameStarted = false;
+		playerCount = 0;
 		server.close();
+	}
+	
+	public int ConnectedPlayers(){
+		return playerCount + 1; // Include host
 	}
 
 	/**
@@ -183,9 +211,14 @@ private void SetupServer(){
 		
 		updatePhysics = new Thread(new Runnable() {
 		     public void run() {
-		    	 while(hostServer){
-		 			gameEngine.render(); 
-		 			
+		    	 while(hostServer){	
+		    		bombTimer -= 0.01f;
+		 			if(gameEngine.GameOver()){
+		 				hostServer = false;
+		 				server.sendToAllTCP(new GameOver());
+		 			}else{	
+			 			gameEngine.render();
+			 			
 		 			//Slow thread to keep steady physics calculations
 		 			try {
 						Thread.sleep(B2DVars.NETWORK_UPDATE_CYCLE_TIME);
@@ -194,11 +227,11 @@ private void SetupServer(){
 						e.printStackTrace();
 					}
 		 		}
+		 		}
+		    	 
 		     }
 		});  
 		updatePhysics.start();
 		
-		
 	}
-
 }

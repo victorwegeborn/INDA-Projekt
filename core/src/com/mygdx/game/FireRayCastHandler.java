@@ -17,9 +17,7 @@ public class FireRayCastHandler implements RayCastCallback {
 	@Override
 	public float reportRayFixture(Fixture fixture, Vector2 point,
 			Vector2 normal, float fraction) {
-		
-		CoreGame.DrawSquare(point.x, point.y, Color.RED);
-		
+				
 		short fixtureCategory = fixture.getFilterData().categoryBits;
 		hitPoint = point;
 		

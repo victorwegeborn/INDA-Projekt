@@ -11,23 +11,30 @@ import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Listener.ThreadedListener;
 import com.mygdx.NGame.NConfig;
 import com.mygdx.NGame.NNetwork;
+import com.mygdx.NGame.NNetwork.BombSound;
 import com.mygdx.NGame.NNetwork.BombUpdate;
 import com.mygdx.NGame.NNetwork.BoxUpdate;
 import com.mygdx.NGame.NNetwork.FireUpdate;
+import com.mygdx.NGame.NNetwork.GameOver;
 import com.mygdx.NGame.NNetwork.ItemUpdate;
 import com.mygdx.NGame.NNetwork.LobbyUpdate;
 import com.mygdx.NGame.NNetwork.PlayerConnectedFromServer;
 import com.mygdx.NGame.NNetwork.PlayerEmptyFromServer;
 import com.mygdx.NGame.NNetwork.PlayerReadyFromServer;
 import com.mygdx.NGame.NNetwork.PlayerUpdate;
+import com.mygdx.NGame.NNetwork.PowerUpSound;
 import com.mygdx.NGame.NNetwork.ShakeUpdate;
 import com.mygdx.NGame.NNetwork.WinScreenUpdate;
+import com.mygdx.gameMenu.ErrorScreen;
 import com.mygdx.gameMenu.GameLobby;
+import com.mygdx.gameMenu.MainMenu;
+import com.mygdx.screen.MainGame;
 import com.mygdx.NGame.NNetwork.StartGame;
 
 public class GameClient {
 
-	public Game game;
+	public MainGame game;
+	public GameServer server;
 	public Client client;
 	public ClientEngine gameEngine;
 	private String hostIP;
@@ -36,11 +43,11 @@ public class GameClient {
 
 
 	
-	public GameClient(Game game, String hostIP) throws UnknownHostException, IOException{
+	public GameClient(MainGame game, String hostIP) throws UnknownHostException, IOException{
 		this.game = game;
 		this.hostIP = hostIP;
 		SetupNetworkListener();
-		this.gameEngine = new ClientEngine(client, hostIP);
+		this.gameEngine = new ClientEngine(game, client, hostIP);
 		ready = false;
 	}
 
@@ -64,6 +71,11 @@ public class GameClient {
 		client.stop();
 	}
 	
+	public void SetServerReference(GameServer server){
+		this.server = server;
+		gameEngine.SetServerReference(server);
+	}
+	
 	private void SetupNetworkListener() throws UnknownHostException, IOException{
 		
 		//========= CLIENT ==========
@@ -79,7 +91,7 @@ public class GameClient {
 			public void connected (Connection c) {
 			}
 			
-			public void disconnect (Connection c) {			
+			public void disconnect (Connection c) {	
 			}
 
 			public void received (Connection c, Object o) {
@@ -120,6 +132,8 @@ public class GameClient {
 					if(gameEngine != null){
 					ShakeUpdate s = (ShakeUpdate)o;
 					gameEngine.SetShakeFactor(s.shakeFactor);
+					SoundManager.explosion1.setPosition(0);
+					SoundManager.explosion1.play();
 					}
 				}
 				
@@ -132,9 +146,29 @@ public class GameClient {
 				}
 				
 				if(o instanceof StartGame){
+					game.PlayBGMusic(SoundManager.bg1);
 					game.setScreen(gameEngine);
 					}
+				if(o instanceof GameOver){
+					GameOver go = (GameOver)o;					
+					gameEngine.GameOver(go.errorcode);
+				}
 				
+				if(o instanceof PowerUpSound){
+					PowerUpSound p = (PowerUpSound)o;
+					if(p.bomb){
+					SoundManager.powerup1.setPosition(0f);
+					SoundManager.powerup1.play();
+					}
+					else{
+					SoundManager.powerup2.setPosition(0f);
+					SoundManager.powerup2.play();
+					}
+				}
+				
+				if(o instanceof BombSound)
+					SoundManager.walk4.play(1f);
+					
 				if(o instanceof LobbyUpdate){
 					LobbyUpdate l = (LobbyUpdate)o;
 					if(lobby != null){
@@ -147,10 +181,8 @@ public class GameClient {
 		}));
 		
 		
-		// === Try to connect. Throws exception if unsuccesful === 
-		client.connect(5000, hostIP, NConfig.PORT);
-	
-			
+		// === Try to connect, throws exception if unsuccessful === 
+		client.connect(5000, hostIP, NConfig.PORT);		
 	}
 		
 }

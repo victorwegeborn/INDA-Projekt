@@ -76,8 +76,6 @@ public class NServer {
 					break;
 					}
 					
-					if(((MovePlayer) o).bomb == Input.Keys.SPACE)
-						System.out.println("PLACE BOMB");
 					
 					
 					return;
