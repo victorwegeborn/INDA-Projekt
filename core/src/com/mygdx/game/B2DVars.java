@@ -69,13 +69,15 @@ public final class B2DVars {
 	public static final long NETWORK_UPDATE_CYCLE_TIME = (long)16.66667;
 	public static final int NETWORK_CLIENT_BUFFERSIZE = 262112;
 	
+	public static boolean SOUND = false;
+	
 	public static final String NETWORK_DEFAULT_PORT_STRING = "54555";
 	public static final int NETWORK_DEFAULT_PORT_INT = 54555;
 	
 	public static final int VIRTUAL_WIDTH = 16;
 	public static final int VIRTUAL_HEIGHT = 9;
 
-
+	
 
 	
 
