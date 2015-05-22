@@ -26,6 +26,10 @@ public class ContactHandler implements ContactListener {
 		this.server = server;
 	}
 	
+	public ContactHandler(){
+
+	}
+	
 	@Override
 	public void beginContact(Contact c) {
 		//System.out.println("COLLISION DETECTED");
@@ -95,19 +99,23 @@ public class ContactHandler implements ContactListener {
 			item = (ItemData)b.getBody().getUserData();
 			
 			if(item.ItemType() == B2DVars.FIRE_POWERUP){
+				if(server != null){
 				player.IncrementFirePower();
 				item.FlagReset();
 				p.bomb = false;
 				server.server.sendToAllTCP(p);
 				return;
+				}
 			}
 				
 			if(item.ItemType() == B2DVars.BOMB_POWERUP){
+				if(server != null){
 				player.IncrementBombCapacity();
 				item.FlagReset();
 				p.bomb = true;
 				server.server.sendToAllTCP(p);
 				return;
+				}
 			}
 		}
 		
@@ -116,19 +124,23 @@ public class ContactHandler implements ContactListener {
 			item = (ItemData)a.getBody().getUserData();
 			
 			if(item.ItemType() == B2DVars.FIRE_POWERUP){
+				if(server != null){
 				player.IncrementFirePower();
 				item.FlagReset();
 				p.bomb = false;
 				server.server.sendToAllTCP(p);
 				return;
+				}
 			}
 				
 			if(item.ItemType() ==  B2DVars.BOMB_POWERUP){
+				if(server != null){
 				player.IncrementBombCapacity();
 				item.FlagReset();
 				p.bomb = true;
 				server.server.sendToAllTCP(p);
 				return;
+				}
 			}
 		}
 	}

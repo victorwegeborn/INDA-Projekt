@@ -660,7 +660,8 @@ public class CoreGame implements Screen {
 					}
 				
 				shake.shake(B2DVars.SHAKE_TIME * firePower); //Screen shakes proportionately to fire power
-				SoundManager.explosion1.play(1f);
+				SoundManager.explosion1.setPosition(0f);
+				SoundManager.explosion1.play();
 				b.detonate = false;
 				b.GetData().UnflagDetonation();
 			
