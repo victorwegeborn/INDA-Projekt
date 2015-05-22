@@ -61,6 +61,7 @@ private void SetupServer(){
 		
 		server = new Server() {
 			
+			
 			protected Connection newConnection () {	
 				
 				NPlayerConnection c = new NPlayerConnection();

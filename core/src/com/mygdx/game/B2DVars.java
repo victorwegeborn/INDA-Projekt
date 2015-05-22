@@ -67,6 +67,7 @@ public final class B2DVars {
 	 * This will increase server side cpu usage. Default value 16.66667
 	 */
 	public static final long NETWORK_UPDATE_CYCLE_TIME = (long)16.66667;
+	public static final int NETWORK_CLIENT_BUFFERSIZE = 262112;
 	
 	public static final String NETWORK_DEFAULT_PORT_STRING = "54555";
 	public static final int NETWORK_DEFAULT_PORT_INT = 54555;

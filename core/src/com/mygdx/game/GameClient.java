@@ -79,7 +79,7 @@ public class GameClient {
 	private void SetupNetworkListener() throws UnknownHostException, IOException{
 		
 		//========= CLIENT ==========
-		client = new Client(65528, 4096);
+		client = new Client(B2DVars.NETWORK_CLIENT_BUFFERSIZE, 4096);
 		client.start();
 		
 		//Register packets
@@ -87,6 +87,7 @@ public class GameClient {
 		
 		// THREADED LISTENER
 		client.addListener(new ThreadedListener(new Listener() {
+			
 			
 			public void connected (Connection c) {
 			}
