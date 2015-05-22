@@ -68,6 +68,7 @@ public final class B2DVars {
 	 */
 	public static final long NETWORK_UPDATE_CYCLE_TIME = (long)16.66667;
 	public static final int NETWORK_CLIENT_BUFFERSIZE = 262112;
+	public static final int NETWORK_SERVER_BUFFERSIZE = 65536;
 	
 	public static boolean SOUND = false;
 	

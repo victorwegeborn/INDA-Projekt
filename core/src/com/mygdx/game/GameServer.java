@@ -59,7 +59,7 @@ public class GameServer {
 	
 private void SetupServer(){
 		
-		server = new Server() {
+		server = new Server(B2DVars.NETWORK_SERVER_BUFFERSIZE, 2048) {
 			
 			
 			protected Connection newConnection () {	
