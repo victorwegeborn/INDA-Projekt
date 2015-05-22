@@ -79,7 +79,7 @@ public class GameClient {
 	private void SetupNetworkListener() throws UnknownHostException, IOException{
 		
 		//========= CLIENT ==========
-		client = new Client(32764, 4096);
+		client = new Client(65528, 4096);
 		client.start();
 		
 		//Register packets
