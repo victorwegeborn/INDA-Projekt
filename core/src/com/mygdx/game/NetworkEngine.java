@@ -117,6 +117,8 @@ public class NetworkEngine {		//implements Screen {
 	private Texture mapSprite;
 	private TextureRegion boxSprite;
 	
+	private ArrayList<BoxData> prevBoxes;
+	
 	private TiledMapTileLayer wallLayer;
 	
 	public MovePlayer[] currentMovePlayer;
@@ -135,6 +137,7 @@ public class NetworkEngine {		//implements Screen {
 	public NetworkEngine(){
 		create();
 		gameOver = false;
+		prevBoxes = new ArrayList<BoxData>();
 	}
 	
 	/**
@@ -440,12 +443,14 @@ public class NetworkEngine {		//implements Screen {
 			}
 			
 			if(!gameOver){
-				if(GameStateManager.sleepTimer > B2DVars.LEVEL_RESET_SLEEPTIME)
+				if(GameStateManager.sleepTimer > B2DVars.LEVEL_RESET_SLEEPTIME){
 					boxes = GameStateManager.ResetGame(tileMap, WORLD, boxes);
+					SendActiveBoxes();
+					}
 					winUpdate.playerNr = GameStateManager.playerWinner;
 					server.sendToAllTCP(winUpdate);
 					sentWinUpdate = false;
-			
+				
 		
 			if(resetGame){
 					boxes = GameStateManager.ResetGame(tileMap, WORLD, boxes);
@@ -463,6 +468,11 @@ public class NetworkEngine {		//implements Screen {
 	 * @param dt deltatime for updates as float
 	 */
 	private void UpdateGameObjects(float dt){
+		
+		for(Box b : boxes){
+			if(b.body.isActive())
+				b.Update(dt);	
+		}
 		
 		for(Player p : GameStateManager.allPlayers){
 			if(!p.Dead())
@@ -491,10 +501,9 @@ public class NetworkEngine {		//implements Screen {
 		for(BombPowerUp b : ItemPool.bombPows)
 				b.Update(dt);
 		
-		
-		for(Box b : boxes)
-			b.Update(dt);	
 	}
+	
+
 	
 	
 	private void ClearRemovedPlayers(){
@@ -504,18 +513,27 @@ public class NetworkEngine {		//implements Screen {
 		}
 	}
 	
-	private void SendActiveObjects(){
+	
+	public void SendActiveBoxes(){
 		
-		//**BOXES (BoxUpdate)**
 		BoxUpdate boxUpdate = new BoxUpdate(); 
 		ArrayList<BoxData> activeBoxes = new ArrayList<BoxData>();
 		for(Box b : boxes){
-			if(b.IsActive())
+			if(b.body.isActive())
 				activeBoxes.add((BoxData)b.body.getUserData());
 		}
-		boxUpdate.boxes = activeBoxes;
 		
+		//TODO: If this update is equal to last update, don't send packet
+		//prevBoxes = activeBoxes;
+		
+		boxUpdate.boxes = activeBoxes;
+		System.out.println("Amount of active boxes: " + boxes.size);
 		server.sendToAllTCP(boxUpdate);
+		
+	}
+	
+	public void SendActiveObjects(){
+		
 		
 		//**PLAYERS (PlayerUpdate)**
 		PlayerUpdate playerUpdate = new PlayerUpdate();
@@ -744,6 +762,7 @@ public class NetworkEngine {		//implements Screen {
 				boolean obstacleHitUp = false;
 				boolean obstacleHitDown = false;
 				FireRayCastHandler fRay = new FireRayCastHandler();
+				fRay.setNetworkEngine(this);
 
 				/**
 				 * For each tile in each direction, a short raycast is
@@ -815,6 +834,7 @@ public class NetworkEngine {		//implements Screen {
 				ShakeUpdate shakeUpdate = new ShakeUpdate();
 				shakeUpdate.shakeFactor = B2DVars.SHAKE_TIME * firePower;	
 				server.sendToAllTCP(shakeUpdate);
+				SendActiveBoxes();
 				
 				shake.shake(B2DVars.SHAKE_TIME * firePower); //Screen shakes proportionately to fire power
 				b.detonate = false;

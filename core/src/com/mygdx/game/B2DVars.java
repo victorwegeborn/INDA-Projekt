@@ -70,7 +70,9 @@ public final class B2DVars {
 	public static final int NETWORK_CLIENT_BUFFERSIZE = 262112;
 	public static final int NETWORK_SERVER_BUFFERSIZE = 65536;
 	
-	public static boolean SOUND = false;
+	public static final boolean SOUND = false;
+	public static final boolean DEBUG_MODE_HOST = true;
+	
 	
 	public static final String NETWORK_DEFAULT_PORT_STRING = "54555";
 	public static final int NETWORK_DEFAULT_PORT_INT = 54555;

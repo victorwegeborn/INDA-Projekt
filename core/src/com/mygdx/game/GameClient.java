@@ -98,11 +98,10 @@ public class GameClient {
 			public void received (Connection c, Object o) {
 				//System.out.println("Packaged received!");
 				
-				if(o instanceof BoxUpdate){
-					//System.out.println("Boxes received!");
-					if(gameEngine != null)
+				if(o instanceof BoxUpdate)
 					gameEngine.UpdateBoxes((BoxUpdate)o);
-				}
+					
+				
 				
 				if(o instanceof PlayerUpdate){
 					//System.out.println("Players received!");

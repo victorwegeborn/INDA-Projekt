@@ -50,6 +50,7 @@ public class MapBodyBuilder {
     	
     	for(Body b : bodies){
     		box = new Box(b);
+    		box.active = true;
     		boxes.add(box);
     	}
     	

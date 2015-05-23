@@ -93,6 +93,7 @@ private void SetupServer(){
 		server.addListener(new Listener() {
 					
 			public void connected (Connection c) {
+						
 				if(playerCount > 3 || gameStarted)
 					c.close();
 				
@@ -191,6 +192,10 @@ private void SetupServer(){
 		server.sendToAllTCP(new StartGame());
 		hostServer = true;
 		RunGame();
+		
+		// === Send initial box state to client
+		if(gameEngine != null)
+			gameEngine.SendActiveBoxes();
 	}
 	
 	public void StopServer(){
@@ -209,7 +214,10 @@ private void SetupServer(){
 	 * concurrently at a pace of ~ 60 fps
 	 */
 	public void RunGame(){
-		gameEngine.CreatePlayers(playerCount); 
+		if(B2DVars.DEBUG_MODE_HOST)
+		gameEngine.CreatePlayers(playerCount + 1);
+		else
+		gameEngine.CreatePlayers(playerCount);
 
 		gameStarted = true;
 		

@@ -207,9 +207,7 @@ public class ClientEngine implements Screen {
 	 */
 	
 	public void create() {
-		
-		//SetupNetworkListener();
-		
+				
 		SetupCamera();
 		
 		SetupSpriteBatch();

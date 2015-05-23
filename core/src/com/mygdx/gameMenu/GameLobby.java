@@ -127,6 +127,7 @@ public class GameLobby implements Screen {
 		return playerStatus;
 	}
 	
+	//=== Sets states for each player slot in the lobby ===
 	public void PlayerConnected(int player){
 		if(player < 1 || player > 4)
 			return;
@@ -144,6 +145,7 @@ public class GameLobby implements Screen {
 			return;
 		playerStatus[player - 1] = B2DVars.PLAYER_EMPTY;
 	}
+	// === -------------------------------------------- ===
 	
 	private void SetupCamera(){
 		camera = new OrthographicCamera(B2DVars.VIRTUAL_WIDTH, B2DVars.VIRTUAL_HEIGHT);
@@ -318,7 +320,7 @@ public class GameLobby implements Screen {
 	
 	private void StartGame(){
 		
-		if(server.ConnectedPlayers() > 1 && server.AllPlayersReady()){
+		if((server.ConnectedPlayers() > 1 && server.AllPlayersReady()) || B2DVars.DEBUG_MODE_HOST){
 			
 			//Set up local client
 			try {

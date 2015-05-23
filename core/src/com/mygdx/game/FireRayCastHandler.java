@@ -13,6 +13,7 @@ public class FireRayCastHandler implements RayCastCallback {
 	
 	public boolean hasCollided; 
 	public Vector2 hitPoint;
+	public NetworkEngine gameEngine;
 	
 	@Override
 	public float reportRayFixture(Fixture fixture, Vector2 point,
@@ -54,11 +55,17 @@ public class FireRayCastHandler implements RayCastCallback {
 		hitPoint = null;
 	}
 	
+	public void setNetworkEngine(NetworkEngine w){
+		gameEngine = w;
+	}
+	
 	private void DestroyBox(Fixture f){
 		ItemPlacer.SpawnRandomPowerUp(f.getBody().getPosition());  //Spawn random item at box position
 		
 		//Deactivate body. All inactive boxes are removed from render queue by design.
 		f.getBody().setActive(false); 
+	
+					
 	}
 	
 
