@@ -133,9 +133,8 @@ public class GameClient {
 					ShakeUpdate s = (ShakeUpdate)o;
 					gameEngine.SetShakeFactor(s.shakeFactor);
 					if(B2DVars.SOUND){
-						SoundManager.explosion1.setPosition(0);
-						SoundManager.explosion1.play();
-					}
+						SoundManager.PlaySound(SoundManager.explosion1);
+						}
 					}
 				}
 				
@@ -162,21 +161,19 @@ public class GameClient {
 					PowerUpSound p = (PowerUpSound)o;
 					if(p.bomb){
 					if(B2DVars.SOUND){
-						SoundManager.powerup1.setPosition(0f);
-						SoundManager.powerup1.play();
+						SoundManager.PlaySound(SoundManager.powerup1);
 					}
 					}
 					else{
 					if(B2DVars.SOUND){
-						SoundManager.powerup2.setPosition(0f);
-						SoundManager.powerup2.play();
+						SoundManager.PlaySound(SoundManager.powerup2);
 						}
 					}
 				}
 				
 				if(o instanceof BombSound)
 					if(B2DVars.SOUND){
-						SoundManager.walk4.play(1f);
+						SoundManager.PlaySound(SoundManager.walk4);
 					}
 					
 				if(o instanceof LobbyUpdate){

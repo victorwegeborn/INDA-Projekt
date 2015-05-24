@@ -56,4 +56,20 @@ public class SoundManager {
 		win.stop();
 	}
 	
+	/**
+	 * Stops the sound(if playing), resets it
+	 * and replays from the beginning
+	 * @param sound of type Music / Sound
+	 */
+	public static void PlaySound(Music sound){
+		sound.stop();
+		sound.setPosition(0f);
+		sound.play();
+	}
+	
+	public static void PlaySound(Sound sound){
+		sound.stop();
+		sound.play();
+	}
+	
 }

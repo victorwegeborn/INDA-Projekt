@@ -8,10 +8,10 @@ public class FireData extends ObjectData {
 	private float animTimer;
 	private float animDuration;
 	
-	private int state;
+	private byte state;
 	
 	public FireData(){
-		type = B2DVars.BIT_FIRE;
+		type = (byte)B2DVars.BIT_FIRE;
 		x = 0f;
 		y = 0f;
 		animTimer = 0f;
@@ -20,21 +20,21 @@ public class FireData extends ObjectData {
 		
 	}
 	
-	public FireData(short type, float x, float y, float animTimer, float animDuration){
+	public FireData(byte type, float x, float y, float animTimer, float animDuration){
 		this.type = type;
 		this.x = x;
 		this.y = y;
 		this.animTimer = animTimer;
 		this.animDuration = animDuration;
-		state = B2DVars.FIRE_MID;
+		state = (byte)B2DVars.FIRE_MID;
 	}
 	
 	
-	public void SetState(int state){
+	public void SetState(byte state){
 		this.state = state;
 	}
 	
-	public int GetState(){
+	public byte GetState(){
 		return state;
 	}
 	

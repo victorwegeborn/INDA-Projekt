@@ -81,7 +81,7 @@ public class ItemPlacer {
 			return;
 		
 //		BombQuery bombQuery = new BombQuery();
-		int firePower = player.GetData().GetFirePower();
+		byte firePower = player.GetData().GetFirePower();
 		System.out.println("player: " + player.GetPlayerNumber() + " firepower: " + firePower);
 		Vector2 bombPosition = CoordinateConverter.quantizePositionToGrid(player.body.getPosition());
 //		WORLD.QueryAABB(bombQuery, bombPosition.x - 0.2f, bombPosition.y - 0.2f, bombPosition.x + 0.2f, bombPosition.y + 0.2f);

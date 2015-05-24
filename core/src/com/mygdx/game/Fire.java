@@ -67,7 +67,7 @@ public class Fire {
 		fdef.isSensor = true;  				  
 		body.createFixture(fdef).setUserData("fire");
 		
-		data = new FireData(B2DVars.BIT_FIRE, body.getPosition().x, body.getPosition().y, animTimer, animDuration);
+		data = new FireData((byte)B2DVars.BIT_FIRE, body.getPosition().x, body.getPosition().y, animTimer, animDuration);
 		CreateFireAnimations();
 		
 	}

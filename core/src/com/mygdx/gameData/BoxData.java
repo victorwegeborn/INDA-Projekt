@@ -11,7 +11,7 @@ public class BoxData extends ObjectData {
 		active = false;
 	}
 	
-	public BoxData(short type, float x, float y, boolean active){
+	public BoxData(byte type, float x, float y, boolean active){
 		this.type = type;
 		this.x = x;
 		this.y = y;

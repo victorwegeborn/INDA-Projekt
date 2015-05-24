@@ -7,7 +7,7 @@ public class BombData extends ObjectData{
 	private boolean detonate;
 	private float detonateX; //position to detonate
 	private float detonateY;
-	private int firePower;
+	private byte firePower;
 	
 	public BombData(){
 		type = B2DVars.BIT_BOMB;
@@ -20,7 +20,7 @@ public class BombData extends ObjectData{
 		
 	}
 	
-	public BombData(short type, float x, float y, boolean active){
+	public BombData(byte type, float x, float y, boolean active){
 		this.type = type;
 		this.x = x;
 		this.y = y;

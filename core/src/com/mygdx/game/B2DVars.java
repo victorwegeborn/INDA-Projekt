@@ -11,9 +11,10 @@ public final class B2DVars {
 	public static final short BIT_BOX = 8;
 	public static final short BIT_ITEM = 16;	
 	public static final short BIT_EVERYTHING = -1;
-	public static final short BIT_FRICTION = 32;
+	public static final short BIT_FIRE = 32;
 	public static final short BIT_BOMB = 64;
-	public static final short BIT_FIRE = 128;
+	public static final short BIT_FRICTION = 128;
+
 	
 	
 	public static final int MAX_FIREPOWER = 6;
@@ -23,33 +24,33 @@ public final class B2DVars {
 
 	
 	//Integer representations
-	public static final int PLAYER_UP = 1;
-	public static final int PLAYER_DOWN = 2;
-	public static final int PLAYER_LEFT = 3;
-	public static final int PLAYER_RIGHT = 4;
-	public static final int PLAYER_DEAD = 5;
+	public static final byte PLAYER_UP = 1;
+	public static final byte PLAYER_DOWN = 2;
+	public static final byte PLAYER_LEFT = 3;
+	public static final byte PLAYER_RIGHT = 4;
+	public static final byte PLAYER_DEAD = 5;
 	
-	public static final int FIRE_UP = 1;
-	public static final int FIRE_DOWN = 2;
-	public static final int FIRE_LEFT = 3;
-	public static final int FIRE_RIGHT = 4;
-	public static final int FIRE_HORIZONTAL = 5;
-	public static final int FIRE_VERTICAL = 6;
-	public static final int FIRE_MID = 7;
+	public static final byte FIRE_UP = 1;
+	public static final byte FIRE_DOWN = 2;
+	public static final byte FIRE_LEFT = 3;
+	public static final byte FIRE_RIGHT = 4;
+	public static final byte FIRE_HORIZONTAL = 5;
+	public static final byte FIRE_VERTICAL = 6;
+	public static final byte FIRE_MID = 7;
 	
-	public static final int BOMB_POWERUP = 1;
-	public static final int FIRE_POWERUP = 2;
+	public static final byte BOMB_POWERUP = 1;
+	public static final byte FIRE_POWERUP = 2;
 	
 	public static final int BOXLAYER_INDEX = 5;
 	
-	public static final int PLAYER_EMPTY = 0;
-	public static final int PLAYER_CONNECTED = 1;
-	public static final int PLAYER_READY = 2;
+	public static final byte PLAYER_EMPTY = 0;
+	public static final byte PLAYER_CONNECTED = 1;
+	public static final byte PLAYER_READY = 2;
 
-	public static final int ERROR_GAME_FULL = 1;
-	public static final int ERROR_UNKNOWN = 2;
-	public static final int ERROR_ALL_PLAYERS_LEFT = 3;
-	public static final int ERROR_HOST_LEFT = 4;
+	public static final byte ERROR_GAME_FULL = 1;
+	public static final byte ERROR_UNKNOWN = 2;
+	public static final byte ERROR_ALL_PLAYERS_LEFT = 3;
+	public static final byte ERROR_HOST_LEFT = 4;
 
 	
 	
@@ -70,8 +71,8 @@ public final class B2DVars {
 	public static final int NETWORK_CLIENT_BUFFERSIZE = 262112;
 	public static final int NETWORK_SERVER_BUFFERSIZE = 65536;
 	
-	public static final boolean SOUND = false;
-	public static final boolean DEBUG_MODE_HOST = true;
+	public static final boolean SOUND = true; //Enables / disables sound fx.
+	public static final boolean DEBUG_MODE_HOST = true; //Enables single-player host mode for debug purposes
 	
 	
 	public static final String NETWORK_DEFAULT_PORT_STRING = "54555";

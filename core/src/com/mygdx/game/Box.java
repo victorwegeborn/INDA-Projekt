@@ -12,7 +12,7 @@ public class Box {
 	
 	public Box(Body body){
 		this.body = body;
-		data = new BoxData(B2DVars.BIT_BOX, body.getPosition().x, body.getPosition().y, true);
+		data = new BoxData((byte)B2DVars.BIT_BOX, body.getPosition().x, body.getPosition().y, true);
 		body.setUserData(data);
 	}
 	

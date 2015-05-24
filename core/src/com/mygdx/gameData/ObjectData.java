@@ -23,7 +23,7 @@ public abstract class ObjectData {
 	protected boolean reset;
 	
 	//Collision layer for this object
-	protected short type;
+	protected byte type;
 	
 	public ObjectData(){
 		x = 0f;

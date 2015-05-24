@@ -103,7 +103,7 @@ public Player(int player, Vector2 position, World world){
 	state = State.Down;
 	
 	//Create player data. This will be sent as packets via kryonet
-	data = new PlayerData(B2DVars.BIT_PLAYER, player, body.getPosition().x, body.getPosition().y, true);
+	data = new PlayerData((byte)B2DVars.BIT_PLAYER, (byte)player, body.getPosition().x, body.getPosition().y, true);
 	body.setUserData(data); // Store reference to data object in user data for external referencing
 
 	CreateAnimations(playerNumber);
@@ -247,16 +247,16 @@ public Player(int player, Vector2 position, World world){
 		
 		switch(state){
 		case Up:
-			data.SetState(B2DVars.PLAYER_UP);
+			data.SetState((byte)B2DVars.PLAYER_UP);
 			break;
 		case Down:
-			data.SetState(B2DVars.PLAYER_DOWN);
+			data.SetState((byte)B2DVars.PLAYER_DOWN);
 			break;
 		case Left:
-			data.SetState(B2DVars.PLAYER_LEFT);
+			data.SetState((byte)B2DVars.PLAYER_LEFT);
 			break;
 		case Right:
-			data.SetState(B2DVars.PLAYER_RIGHT);
+			data.SetState((byte)B2DVars.PLAYER_RIGHT);
 			break;
 		}
 		

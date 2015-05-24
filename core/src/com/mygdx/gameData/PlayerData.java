@@ -4,15 +4,15 @@ import com.mygdx.game.B2DVars;
 
 public class PlayerData extends ObjectData{
 
-	private int state;
-	private int playerNumber;
+	private byte state;
+	private byte playerNumber;
 	
 	private float velX;
 	private float velY;
 	private boolean immortal;
 	
-	private int bombCapacity;
-	private int firePower;
+	private byte bombCapacity;
+	private byte firePower;
 	
 	public PlayerData(){
 		state = B2DVars.PLAYER_DOWN;
@@ -26,7 +26,7 @@ public class PlayerData extends ObjectData{
 		bombCapacity = 1;
 	}
 	
-	public PlayerData(short type, int playerNumber, float x, float y, boolean active){
+	public PlayerData(byte type, byte playerNumber, float x, float y, boolean active){
 		this.type = type;
 		this.x = x;
 		this.y = y;
@@ -43,7 +43,7 @@ public class PlayerData extends ObjectData{
 		velY = y;
 	}
 	
-	public void SetState(int state){
+	public void SetState(byte state){
 		this.state = state;
 	}
 	
@@ -89,11 +89,11 @@ public class PlayerData extends ObjectData{
 		return immortal;
 	}
 	
-	public int GetFirePower(){
+	public byte GetFirePower(){
 		return firePower;
 	}
 	
-	public int GetBombCapacity(){
+	public byte GetBombCapacity(){
 		return bombCapacity;
 	}
 	

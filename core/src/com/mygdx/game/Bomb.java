@@ -15,7 +15,7 @@ import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.mygdx.gameData.BombData;
 
 public class Bomb {
-	private int firePower;
+	private byte firePower;
 	private float timeToDetonate;
 	private float timer;
 	
@@ -45,7 +45,7 @@ public class Bomb {
 	}
 	
 	
-	public Bomb(int firePower, float timeToDetonate, World world, Vector2 poolPosition){
+	public Bomb(byte firePower, float timeToDetonate, World world, Vector2 poolPosition){
 		
 		this.poolPosition = poolPosition;
 		active = false;
@@ -77,13 +77,13 @@ public class Bomb {
 		tickingAnim = new Animation(framerate, spriteSheet.findRegions("bomb"));
 		tickingAnim.setPlayMode(PlayMode.LOOP);
 		
-		data = new BombData(B2DVars.BIT_BOMB, body.getPosition().x, body.getPosition().y, false);
+		data = new BombData((byte)B2DVars.BIT_BOMB, body.getPosition().x, body.getPosition().y, false);
 		body.setUserData(data); // Store reference to this bombs data in world body
 
 	
 	}
 	
-	public int GetFirePower(){
+	public byte GetFirePower(){
 		return firePower;
 	}
 	
@@ -95,7 +95,7 @@ public class Bomb {
 		return owner;
 	}
 	
-	public void SetFirePower(int f){
+	public void SetFirePower(byte f){
 		firePower = f;
 	}
 	

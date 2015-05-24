@@ -132,6 +132,10 @@ public class NetworkEngine {		//implements Screen {
 	
 	public Server server;
 	private int playerCount;
+	
+	private int previousActiveBombs;
+	private int previousActiveFires;
+	private int previousActiveItems;
 		
 	
 	public NetworkEngine(){
@@ -275,7 +279,7 @@ public class NetworkEngine {		//implements Screen {
 		
 		// Establish item pools--------------***
 		for(int b = 0; b < ItemPool.bombs.length; b++)
-			ItemPool.bombs[b] = new Bomb(1, B2DVars.BOMB_TIME, WORLD, ItemPool.bombPoolPosition);
+			ItemPool.bombs[b] = new Bomb((byte)1, B2DVars.BOMB_TIME, WORLD, ItemPool.bombPoolPosition);
 		
 		for (int f = 0; f < ItemPool.fires.length; f++)
 			ItemPool.fires[f] = new Fire(WORLD, ItemPool.firePoolPosition);
@@ -345,6 +349,8 @@ public class NetworkEngine {		//implements Screen {
 		SendActiveObjects();
 		
 		ClearRemovedPlayers();
+		
+		//PrintPlayerPosition(GameStateManager.allPlayers.get(0)); //Print p1 position
 
 		
 	}
@@ -518,6 +524,7 @@ public class NetworkEngine {		//implements Screen {
 		
 		BoxUpdate boxUpdate = new BoxUpdate(); 
 		ArrayList<BoxData> activeBoxes = new ArrayList<BoxData>();
+		
 		for(Box b : boxes){
 			if(b.body.isActive())
 				activeBoxes.add((BoxData)b.body.getUserData());
@@ -527,7 +534,7 @@ public class NetworkEngine {		//implements Screen {
 		//prevBoxes = activeBoxes;
 		
 		boxUpdate.boxes = activeBoxes;
-		System.out.println("Amount of active boxes: " + boxes.size);
+		//System.out.println("Amount of active boxes: " + boxes.size);
 		server.sendToAllTCP(boxUpdate);
 		
 	}
@@ -551,11 +558,16 @@ public class NetworkEngine {		//implements Screen {
 		for(Bomb b : ItemPool.bombs){
 			if(b.active){
 				activeBombs.add(b.GetData());
-			}	
-		bombUpdate.bombs = activeBombs;
-		server.sendToAllTCP(bombUpdate);
-		
+			}
 		}
+		
+		if(!(activeBombs.size() < 1 && previousActiveBombs < 1)){
+			bombUpdate.bombs = activeBombs;
+			server.sendToAllTCP(bombUpdate);
+			previousActiveBombs = activeBombs.size();
+		}
+		
+		
 		
 		//**Fires (FireUpdate)**
 		FireUpdate fireUpdate = new FireUpdate();
@@ -564,8 +576,12 @@ public class NetworkEngine {		//implements Screen {
 			if(f.active)
 				activeFires.add(f.GetData());
 		}
-		fireUpdate.fires = activeFires;
-		server.sendToAllTCP(fireUpdate);
+		
+		if(!(activeFires.size() < 1 && previousActiveFires < 1)){
+			fireUpdate.fires = activeFires;
+			server.sendToAllTCP(fireUpdate);
+			previousActiveFires = activeFires.size();
+		}
 		
 		
 		//**Bomb PowerUps && Fire PowerUps (ItemUpdate)**
@@ -582,8 +598,11 @@ public class NetworkEngine {		//implements Screen {
 				activeItems.add(f.GetData());
 		}
 		
-		itemUpdate.items = activeItems;
-		server.sendToAllTCP(itemUpdate);
+		if(!(activeItems.size() < 1 && previousActiveItems < 1)){
+			itemUpdate.items = activeItems;
+			server.sendToAllTCP(itemUpdate);
+			previousActiveItems = activeItems.size();
+		}
 	}
 	
 	private void CheckAllPlayerMovement(){
@@ -593,7 +612,9 @@ public class NetworkEngine {		//implements Screen {
 		}
 	}
 	
-
+	private void PrintPlayerPosition(Player p){
+		System.out.println("Player " + p.GetPlayerNumber() + ": " + p.body.getPosition());
+	}
 	
 	private void MovePlayer(Player p, MovePlayer moveData){
 	

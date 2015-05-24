@@ -226,7 +226,7 @@ public class CoreGame implements Screen {
 		
 		// Establish item pools--------------***
 		for(int b = 0; b < ItemPool.bombs.length; b++)
-			ItemPool.bombs[b] = new Bomb(1, B2DVars.BOMB_TIME, WORLD, ItemPool.bombPoolPosition);
+			ItemPool.bombs[b] = new Bomb((byte)1, B2DVars.BOMB_TIME, WORLD, ItemPool.bombPoolPosition);
 		
 		for (int f = 0; f < ItemPool.fires.length; f++)
 			ItemPool.fires[f] = new Fire(WORLD, ItemPool.firePoolPosition);

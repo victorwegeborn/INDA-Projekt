@@ -83,7 +83,7 @@ private void SetupServer(){
 			}
 		};
 
-		Log.set(Log.LEVEL_WARN);
+		Log.set(Log.LEVEL_INFO);
 
 		
 		//Register all packages that will be sent between server and client

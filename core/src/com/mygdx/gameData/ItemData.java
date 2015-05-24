@@ -4,10 +4,10 @@ import com.mygdx.game.B2DVars;
 
 public class ItemData extends ObjectData{
 	
-	protected int state;
+	protected byte state;
 	protected float animTimer;
 	protected boolean pickedUp;
-	protected int itemType;
+	protected byte itemType;
 	
 	public ItemData(){
 		type = B2DVars.BIT_ITEM;
@@ -18,7 +18,7 @@ public class ItemData extends ObjectData{
 		pickedUp = false;
 	}
 	
-	public ItemData(int itemType, float x, float y, float animTimer, boolean active){
+	public ItemData(byte itemType, float x, float y, float animTimer, boolean active){
 		this.type = 16; // Hardcoded to B2DVars.BIT_ITEM = 16
 		this.itemType = itemType;
 		this.x = x;
